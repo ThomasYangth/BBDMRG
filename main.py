@@ -11,7 +11,7 @@ def ranmatH (*shape):
     return (rm + np.swapaxes(rm.conj(),-1,-2))/2
 
 sz = 2
-L = 10
+L = 8
 
 """
 M = np.random.randn(sz,sz,sz) + 1j*np.random.randn(sz,sz,sz)
@@ -30,14 +30,14 @@ print(np.linalg.norm(ncon([Yb,Ib],[[1,-2,-3],[-1,1]])-Mb))
 M = [ranmat(1,sz,sz)] + [ranmat(sz,sz,sz) for _ in range(L-2)] + [ranmat(sz,sz,1)]
 
 ### Non-Hermitian
-#Mb = [ranmat(1,sz,sz)] + [ranmat(sz,sz,sz) for _ in range(L-2)] + [ranmat(sz,sz,1)]
+Mb = [ranmat(1,sz,sz)] + [ranmat(sz,sz,sz) for _ in range(L-2)] + [ranmat(sz,sz,1)]
 W = [ranmat(1,sz,sz,sz)] + [ranmat(sz,sz,sz,sz) for _ in range(L-2)] + [ranmat(sz,1,sz,sz)]
 
 ### Hermitian
-Mb = [m.conj() for m in M]
+#Mb = [m.conj() for m in M]
 #W = [ranmatH(1,sz,sz,sz)] + [ranmatH(sz,sz,sz,sz) for _ in range(L-2)] + [ranmatH(sz,1,sz,sz)]
 
-E, Hdifs, _,_,_,_ = doDMRG_bb(M, Mb, W, 20, debug=False, numsweeps=1, method="lrrho")
+E, Hdifs, _,_,_,_ = doDMRG_bb(M, Mb, W, 50, debug=False, numsweeps=10, method="biortho")
 
 """
 from matplotlib import pyplot as plt

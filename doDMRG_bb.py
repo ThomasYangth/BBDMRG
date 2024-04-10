@@ -10,6 +10,8 @@ def doDMRG_bb(M, Mb, W, chi_max, numsweeps = 10, dispon = 2, updateon = True, de
 ------------------------
 by Glen Evenbly (c) for www.tensors.net, (v1.1) - last modified 19/1/2019
 ------------------------
+modified by Tian-Hua Yang
+------------------------
 Implementation of DMRG for a 1D chain with open boundaries. Input 'M' is containing the MPS \
 tensors whose length is equal to that of the 1D lattice, and 'Mb' is the corresponding left \
 vector. The Hamiltonian is specified by an MPO with entries 'W'. Automatically grow the MPS bond \
@@ -19,8 +21,10 @@ Optional arguments:
 `numsweeps::Integer=10`: number of DMRG sweeps
 `dispon::Integer=2`: print data never [0], after each sweep [1], each step [2]
 `updateon::Bool=true`: enable or disable tensor updates
-`maxit::Integer=2`: number of iterations of Lanczos method for each diagonalization
-`krydim::Integer=4`: maximum dimension of Krylov space in superblock diagonalization
+`debug::Bool=False`: enable debugging messages
+`which::str="SR"`: which eigenvalue to choose, "SR" indicates smallest real part
+`method::str="biortho"`: method for truncation of density matrix; 'biortho' is for bbDMRG, \
+    'lrrho' for using the density matrix rho=(psiL psiL + psiR psiR)/2
 """
 
     ##### left-to-right 'warmup', put MPS in right orthogonal form
