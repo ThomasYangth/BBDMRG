@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # doDMRG_MPO.py
-import numpy as np
-from numpy import linalg as LA
-from ncon import ncon
+
+from Config import *
 from BiorthoLib import left_decomp, right_decomp, eigLR
 
 def doDMRG_bb(M, Mb, W, chi_max, numsweeps = 10, dispon = 2, updateon = True, debug = False, which = "SR", method = "biortho"):

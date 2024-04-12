@@ -1,7 +1,5 @@
-import numpy as np
 from BiorthoLib import left_decomp, right_decomp
-from doDMRG_bb import doDMRG_bb
-from ncon import ncon
+from doDMRG_bb import *
 
 def ranmat (*shape):
     return np.random.randn(*shape) + 1j*np.random.randn(*shape)
