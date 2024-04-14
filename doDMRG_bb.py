@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-# doDMRG_MPO.py
+# doDMRG_bb.py
 
 from Config import *
 from BiorthoLib import left_decomp, right_decomp, eigLR
 
-def doDMRG_bb(M, Mb, W, chi_max, numsweeps = 10, dispon = 2, updateon = True, debug = False, which = "SR", method = "biortho"):
+def doDMRG_bb(M, Mb, W, chi_max, numsweeps = 10, dispon = 2, updateon = True, debug = False, which = "SR", method = "biortho", cut = 1e-8):
     """
 ------------------------
 by Glen Evenbly (c) for www.tensors.net, (v1.1) - last modified 19/1/2019
@@ -27,7 +27,8 @@ Optional arguments:
 """
 
     ##### left-to-right 'warmup', put MPS in right orthogonal form
-    # Index of M is: left'' - right'' - physical - physical'
+    # Index of W is: left'' - right'' - physical' - physical
+    # Index notation: no prime = ket, one prime = bra, two primes = operator link
     Nsites = len(M)
     if len(Mb) != Nsites:
         raise Exception("Length of M and Mb must match!")
@@ -51,8 +52,8 @@ Optional arguments:
         M[p-1] = ncon([M[p-1],I], [[-1,-2,1],[1,-3]])
         Mb[p-1] = ncon([Mb[p-1],Ib], [[-1,-2,1],[1,-3]])
 
-        # Construct R[p-1]. The indices of R is: left'' - left - left'
-        R[p-1] = ncon([R[p], W[p], Z[p], Zb[p]],[[3,1,5],[-1,3,2,4],[-2,2,1],[-3,4,5]])
+        # Construct R[p-1]. The indices of R is: left'' - left' - left
+        R[p-1] = ncon([R[p], W[p], Zb[p], Z[p]],[[3,1,5],[-1,3,2,4],[-2,2,1],[-3,4,5]])
 
     # Normalize M[0] and Mb[0] so that the trial wave functions are bi-normalized
     ratio = 1/np.sqrt(ncon([M[0],Mb[0]],[[1,2,3],[1,2,3]]))
@@ -65,7 +66,10 @@ Optional arguments:
     
     Ekeep = np.array([])
     Hdifs = np.array([])
-    for k in range(1,numsweeps+2):
+
+    k = 1
+
+    while k <= numsweeps+1:
         
         ##### final sweep is only for orthogonalization (disable updates)
         if k == numsweeps+1:
@@ -87,7 +91,7 @@ Optional arguments:
             Mb[p+1] = ncon([Ib,Zb[p+1]], [[-1,1],[1,-2,-3]])
 
             # Construct L[p+1]
-            L[p+1] = ncon([L[p], W[p], Y[p], Yb[p]], [[3,1,5],[3,-1,2,4],[1,2,-2],[5,4,-3]])
+            L[p+1] = ncon([L[p], W[p], Yb[p], Y[p]], [[3,1,5],[3,-1,2,4],[1,2,-2],[5,4,-3]])
         
             ##### display energy
             if dispon == 2:
@@ -111,7 +115,7 @@ Optional arguments:
             Mb[p-1] = ncon([Yb[p-1],Ib], [[-1,-2,1],[1,-3]])
 
             # Construct R[p-1]. The indices of R is: left'' - left - left'
-            R[p-1] = ncon([R[p], W[p], Z[p], Zb[p]],[[3,1,5],[-1,3,2,4],[-2,2,1],[-3,4,5]])
+            R[p-1] = ncon([R[p], W[p], Zb[p], Z[p]],[[3,1,5],[-1,3,2,4],[-2,2,1],[-3,4,5]])
         
             ##### display energy
             if dispon == 2:
@@ -121,6 +125,14 @@ Optional arguments:
         Z[0] = M[0]
         Zb[0] = Mb[0]
         
+        # Calculate <H^2>-<H>^2
+        RR = np.ones((1,1,1,1))
+        for p in range(Nsites-1,-1,-1):
+            RR = ncon([Zb[p],RR,W[p],W[p],Z[p]], [[-3,2,1],[5,3,1,6],[-1,5,2,4],[-2,3,4,7],[-4,7,6]])
+
+        Hdif = RR.flatten()[0]-Ekeep[-1]**2
+        Hdifs = np.append(Hdifs, Hdif)
+
         if dispon >= 1:
 
             """
@@ -131,14 +143,13 @@ Optional arguments:
             norm = R0.flatten()[0]
             """
 
-            # Calculate <H^2>-<H>^2
-            RR = np.ones((1,1,1,1))
-            for p in range(Nsites-1,-1,-1):
-                RR = ncon([RR,W[p],W[p],Z[p],Zb[p]], [[5,3,1,6],[-1,5,4,7],[-2,3,2,4],[-3,2,1],[-4,7,6]])
-
-            Hdif = RR.flatten()[0]-Ekeep[-1]**2
-            Hdifs = np.append(Hdifs, Hdif)
-
             print('Sweep: {} of {}, Energy: {:.3f}, H dif: {}, Bond dim: {}'.format(k, numsweeps, Ekeep[-1], Hdif, chi_max))
+
+        # Early termination if converged
+        if np.abs(np.std(Ekeep[-2*Nsites:])) < cut and np.abs(Hdif) < cut:
+            print("Converged")
+            k = numsweeps+1
+
+        k += 1
             
     return Ekeep, Hdifs, Y, Yb, Z, Zb

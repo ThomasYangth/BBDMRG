@@ -1,9 +1,8 @@
-import numpy as np
-from numpy import linalg as LA
+from Config import *
 from scipy import linalg as sLA
 from scipy import sparse
-from ncon import ncon
 from time import time
+import numpy
 
 def left_decomp (M, Mb, chi_max = 0, timing = False, method = "biortho"):
     if method == "biortho":
@@ -51,7 +50,7 @@ def left_decomp_biortho (M, Mb, chi_max = 0, unitarize = False, timing = False):
 
     # Construct Density Matrix
     dL, dS, _ = np.shape(M)
-    rho = ncon([M, Mb], [[-1,-2,1],[-3,-4,1]]).reshape(dL*dS, dL*dS)
+    rho = ncon([M, Mb], [[-1,-2,1],[-3,-4,1]]).reshape((dL*dS, dL*dS))
 
     timestamp("Rho Construction")
 
@@ -227,35 +226,60 @@ etab (left' - temp')
 """
 
 
-def eigLR (L, R, M, A, Ab, which = 'SR'):
-    Ham = ncon([L,R,M],[[1,-4,-1],[2,-6,-3],[1,2,-5,-2]])
-    Ham = Ham.reshape((np.prod(np.shape(Ham)[:3]),-1))
+def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True):
+
+    t1 = time()
+
+    Ham = ncon([L,R,M],[[1,-1,-4],[2,-3,-6],[1,2,-2,-5]])
+    print(f"In eigLR, bond dimensions: {np.shape(Ham)[:3]}...", end=" ")
+    dim = np.array(np.shape(Ham)[:3]).prod()
+    dim = dim.item()
+    Ham = np.reshape(Ham, (dim,dim))
 
     def select_arg (w):
         if which == "SR":
             return np.argsort(np.real(w))[0]
         elif which == "SM":
             return np.argsort(np.abs(w))[0]
+        elif which == "LR":
+            return np.argsort(np.real(w))[-1]
         elif isinstance(which, complex):
             return np.argsort(np.abs(w-which))[0]
         else:
             raise Exception("Invalid instance which = {}".format(which))
 
-    if False:
+    try:
 
-        Ham = sparse.csr_matrix(Ham)
-        print(Ham.count_nonzero()/np.size(Ham.toarray()))
-        print("Eigen solving step 1")
-        w, v = sparse.linalg.eigs(Ham, k=1, which="SM", v0=A.flatten(), maxiter=10000)
+        if not use_sparse:
+            raise Exception("This exception jumps the code to the non-sparse method")
+        
+        if not isinstance(Ham, numpy.ndarray):
+            Ham = Ham.get()
+
+        print(f"Using sparse algorithm...", end=" ")
+
+        Hspr = sparse.csr_matrix(Ham)
+        #sparse_ratio = Hspr.count_nonzero()/np.size(Hspr.toarray())
+        #print("Using sparse: "+str(sparse_ratio))
+        #print("Eigen solving step 1")
+        if isinstance(which, str):
+            w, v = sparse.linalg.eigs(Hspr, k=1, which=which, v0=A.flatten(), maxiter=10000)
+        elif isinstance(which, complex):
+            #print(f"EigLR which = {which}")
+            w, v = sparse.linalg.eigs(Hspr, k=1, sigma=which, which="LM", v0=A.flatten(), maxiter=10000)
+        else:
+            raise Exception()
         w = w[0]
         v = v[:,0]
-        print("Eigen solving step 2, w = {}".format(w))
-        w1, vL = sparse.linalg.eigs(Ham.transpose(), k=1, sigma=w, which="LM", v0=Ab.flatten())
+        #print("Eigen solving step 2, w = {}".format(w))
+        w1, vL = sparse.linalg.eigs(Hspr.transpose(), k=1, sigma=w, which="LM", v0=Ab.flatten())
         w1 = w1[0]
         vL = vL[:,0]
-        print("Eigen solving step 3, w1 = {}".format(w1))
+        #print("Eigen solving step 3, w1 = {}".format(w1))
 
-    else:
+    except Exception as e:
+
+        print(f"{e}, Using non-sparse algorithm...", end=" ")
 
         #print("Eigen solving step 1")
         w, v = LA.eig(Ham)
@@ -274,6 +298,8 @@ def eigLR (L, R, M, A, Ab, which = 'SR'):
     
     # Normalize the left- and right- eigenvectors
     v, vL = unitize(v, vL)
+
+    print(f"Done in {time()-t1}s")
 
     return (w+w1)/2, np.reshape(v, np.shape(A)), np.reshape(vL, np.shape(Ab))
 
