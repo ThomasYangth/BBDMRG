@@ -5,7 +5,82 @@ from numpy import linalg as LA
 from ncon import ncon
 from BiorthoLib import left_decomp, right_decomp, eigLR
 
+<<<<<<< Updated upstream
 def doDMRG_bb(M, Mb, W, chi_max, numsweeps = 10, dispon = 2, updateon = True, debug = False, which = "SR", method = "biortho"):
+=======
+def doDMRG_excited(M, Mb, W, chi_max, k=1, which = "SM", expected_gap = 1, numsweeps = 10, dispon = 2, debug = False, method = "biortho", cut = 1e-8, stop_if_not_converge = True, log_write = print):
+
+    # which should be "SM" or "LR"
+    
+    Ms = []
+    Mbs = []
+    Es = []
+
+    if not isinstance(W, MPO):
+        W = MPO(W)
+
+    for thisk in range(k):
+        log_write(f"Finding eigenvalue #{thisk+1}")
+
+        Ekeep, Hdifs, Y, Yb, Z, Zb = doDMRG_IncChi(M, Mb, W, chi_max, which = which,
+            normalize_against = [(Ms[i],Mbs[i],-expected_gap*(thisk-i)) for i in range(thisk)],
+            vt_amp=4, chi_start=16,
+            numsweeps=numsweeps,dispon=dispon,debug=debug,method=method,cut=cut,log_write=log_write)
+        if np.abs(Hdifs[-1]) < 1e-3:
+            log_write(f"Found eigenvalue #{thisk+1}")
+        else:
+            if stop_if_not_converge:
+                raise Exception(f"Failed to converge for eigenvalue #{thisk+1}: <Delta H^2> = {Hdifs[-1]}")
+            else:
+                log_write(f"ERROR: Failed to converge for eigenvalue #{thisk+1}: <Delta H^2> = {Hdifs[-1]}")
+
+        M = [Zi.copy() for Zi in Z]
+        Mb = [Zbi.copy() for Zbi in Z]
+
+        Es.append(Ekeep[-1])
+        Ms.append(Y)
+        
+        if method == "biortho":
+            Mbs.append(Yb)
+
+        else:
+            Ekeep, Hdifs, Y, _, _, _ = doDMRG_IncChi(Zb, Z, W.transpose(), chi_max, which = Es[-1],
+            normalize_against = [(Mbs[i],Ms[i],-expected_gap*(thisk-i)) for i in range(thisk)],
+            numsweeps=numsweeps,dispon=dispon,debug=debug,method=method,cut=cut,log_write=log_write)
+            
+            if np.abs(Hdifs[-1]) > 1e-3 or np.abs(Ekeep[-1]-Es[-1]) > 1e-3:
+                if stop_if_not_converge:
+                    raise Exception(f"Failed to converge for eigenvalue #{thisk+1}: <Delta H^2> = {Hdifs[-1]}, Delta E = {np.abs(Ekeep[-1]-Es[-1])}")
+                else:
+                    log_write(f"Failed to converge for eigenvalue #{thisk+1}: <Delta H^2> = {Hdifs[-1]}, Delta E = {np.abs(Ekeep[-1]-Es[-1])}")
+
+            Mbs.append(Y)
+
+    return Ms, Mbs, Es
+    
+
+def doDMRG_IncChi (M, Mb, W, chi_max, chi_inc = 10, chi_start = 20, init_sweeps = 5, inc_sweeps = 2, tol_start = 1e-3, tol_end = 1e-6, vt_amp = 3, vt_sweeps = 3, numsweeps = 10, dispon = 2, debug = False, which = "SR", method = "biortho", cut = 1e-8, normalize_against = [], log_write = print):
+
+    _,_,M,Mb,_,_ = doDMRG_bb(M, Mb, W, chi_start, tol=tol_start,numsweeps=init_sweeps,dispon=dispon,updateon=True,debug=debug,which=which,method=method,normalize_against=normalize_against,log_write=log_write)
+    
+    chi = chi_start
+    while True:
+        chi += chi_inc
+        if chi >= chi_max:
+            break
+        _,_,M,Mb,_,_ = doDMRG_bb(M, Mb, W, chi, tol=tol_start,numsweeps=inc_sweeps,dispon=dispon,updateon=True,debug=debug,which=which,method=method,normalize_against=normalize_against,log_write=log_write)
+
+    chi = chi_max
+    tol = tol_start
+    while tol > tol_end:
+        _,_,M,Mb,_,_ = doDMRG_bb(M, Mb, W, chi, tol=tol,numsweeps=vt_sweeps,dispon=dispon,updateon=True,debug=debug,which=which,method=method,normalize_against=normalize_against,log_write=log_write)
+        tol *= 10**(-vt_amp)
+
+    return doDMRG_bb(M, Mb, W, chi_max, tol=tol_end, numsweeps=numsweeps,dispon=dispon,updateon=True,debug=debug,which=which,method=method,normalize_against=normalize_against,log_write=log_write)
+
+
+def doDMRG_bb(M, Mb, W, chi_max, numsweeps = 10, dispon = 2, updateon = True, debug = False, which = "SR", method = "biortho", tol=0, normalize_against = [], log_write = print):
+>>>>>>> Stashed changes
     """
 ------------------------
 by Glen Evenbly (c) for www.tensors.net, (v1.1) - last modified 19/1/2019
@@ -88,7 +163,7 @@ Optional arguments:
         
             ##### display energy
             if dispon == 2:
-                print('Sweep: {} of {}, Loc: {},Energy: {:.3f}'.format(k, numsweeps, p, Ekeep[-1]))
+                log_write('Sweep: {} of {}, Loc: {},Energy: {:.3f}'.format(k, numsweeps, p, Ekeep[-1]))
 
         # Set Y[-1]
         Y[-1] = M[-1]
@@ -112,7 +187,7 @@ Optional arguments:
         
             ##### display energy
             if dispon == 2:
-                print('Sweep: {} of {}, Loc: {},Energy: {:.3f}'.format(k, numsweeps, p, Ekeep[-1]))
+                log_write('Sweep: {} of {}, Loc: {},Energy: {:.3f}'.format(k, numsweeps, p, Ekeep[-1]))
 
         # Set Z[0]
         Z[0] = M[0]
@@ -128,6 +203,7 @@ Optional arguments:
             norm = R0.flatten()[0]
             """
 
+<<<<<<< Updated upstream
             # Calculate <H^2>-<H>^2
             RR = np.ones((1,1,1,1))
             for p in range(Nsites-1,-1,-1):
@@ -135,6 +211,15 @@ Optional arguments:
 
             Hdif = RR.flatten()[0]-Ekeep[-1]**2
             Hdifs = np.append(Hdifs, Hdif)
+=======
+            log_write('Sweep: {} of {}, Energy: {:.3f}, H dif: {}, Bond dim: {}, tol: {}'.format(k, numsweeps, Ekeep[-1], Hdif, chi_max, tol))
+
+        cut = max(tol, np.finfo(float).eps) * 10
+        # Early termination if converged
+        if np.abs(np.std(Ekeep[-2*Nsites:])) < cut and np.abs(Hdif) < cut:
+            log_write("Converged")
+            k = numsweeps+1
+>>>>>>> Stashed changes
 
             print('Sweep: {} of {}, Energy: {:.3f}, H dif: {}, Bond dim: {}'.format(k, numsweeps, Ekeep[-1], Hdif, chi_max))
             

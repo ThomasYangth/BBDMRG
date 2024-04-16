@@ -34,7 +34,7 @@ def left_decomp_biortho (M, Mb, chi_max = 0, unitarize = False, timing = False):
 
     def timestamp(msg):
         if timing:
-            print("Timestamp {}: {:.2f}s".format(msg, time()-t1))
+            log_write("Timestamp {}: {:.2f}s".format(msg, time()-t1))
 
     timestamp("Begin decomposition")
 
@@ -143,20 +143,20 @@ def nullspace (M):
 def schur_sorted (M, chi, doprint = False):
 
     if doprint:
-        print("Schur sorted called")
+        log_write("Schur sorted called")
 
     L = np.shape(M)[0]
     T, Z = sLA.schur(M)
 
     if doprint:
-        print("Bare decomposition done")
+        log_write("Bare decomposition done")
 
     if chi <= 0 or L <= chi:
         return T, np.zeros((L,0)), np.zeros((0,0)), Z, np.zeros((L,0))
     args = np.argsort(-np.abs(np.diag(T)))
 
     if doprint:
-        print("Entering permutation")
+        log_write("Entering permutation")
 
     def permute (r1, r2):
         if r1 == r2:
@@ -208,7 +208,7 @@ def schur_sorted (M, chi, doprint = False):
 
     
     if doprint:
-        print("Permutation done")
+        log_write("Permutation done")
 
     return T[:chi,:chi], T[chi:,chi:], T[:chi,chi:], Z[:,:chi], Z[:,chi:]
 
@@ -227,9 +227,27 @@ etab (left' - temp')
 """
 
 
+<<<<<<< Updated upstream
 def eigLR (L, R, M, A, Ab, which = 'SR'):
     Ham = ncon([L,R,M],[[1,-4,-1],[2,-6,-3],[1,2,-5,-2]])
     Ham = Ham.reshape((np.prod(np.shape(Ham)[:3]),-1))
+=======
+def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True, tol = 0, normalize_against = [], log_write = print):
+
+    t1 = time()
+
+    Ham = ncon([L,R,M],[[1,-1,-4],[2,-3,-6],[1,2,-2,-5]])
+    log_write(f"In eigLR, bond dimensions: {np.shape(Ham)[:3]}...", end=" ")
+    dim = np.array(np.shape(Ham)[:3]).prod()
+    dim = dim.item()
+    Ham = np.reshape(Ham, (dim,dim))
+
+    for norm_tuple in normalize_against:
+        Ln,Rn,Mnb,Lnb,Rnb,Mn,amp = norm_tuple
+        Hb = ncon([Ln,Rn,Mnb],[[1,-1],[2,-3],[1,-2,2]])
+        H = ncon([Lnb,Rnb,Mn],[[-1,1],[-3,2],[1,-2,2]])
+        Ham += amp * np.tensordot(H.flatten(), Hb.flatten(), axes=0)
+>>>>>>> Stashed changes
 
     def select_arg (w):
         if which == "SR":
@@ -243,45 +261,85 @@ def eigLR (L, R, M, A, Ab, which = 'SR'):
 
     if False:
 
+<<<<<<< Updated upstream
         Ham = sparse.csr_matrix(Ham)
         print(Ham.count_nonzero()/np.size(Ham.toarray()))
         print("Eigen solving step 1")
         w, v = sparse.linalg.eigs(Ham, k=1, which="SM", v0=A.flatten(), maxiter=10000)
+=======
+        if not use_sparse:
+            raise Exception("This exception jumps the code to the non-sparse method")
+        
+        if not isinstance(Ham, numpy.ndarray):
+            Ham = Ham.get()
+
+        log_write(f"Using sparse algorithm...", end=" ")
+
+        Hspr = sparse.csr_matrix(Ham)
+        #sparse_ratio = Hspr.count_nonzero()/np.size(Hspr.toarray())
+        #print("Using sparse: "+str(sparse_ratio))
+        #print("Eigen solving step 1")
+        if isinstance(which, str):
+            w, v = sparse.linalg.eigs(Hspr, k=1, which=which, v0=A.flatten(), maxiter=1000, tol=tol)
+        elif isinstance(which, complex):
+            #print(f"EigLR which = {which}")
+            w, v = sparse.linalg.eigs(Hspr, k=1, sigma=which, which="LM", v0=A.flatten(), maxiter=1000, tol=tol)
+        else:
+            raise Exception()
+>>>>>>> Stashed changes
         w = w[0]
         v = v[:,0]
         print("Eigen solving step 2, w = {}".format(w))
         w1, vL = sparse.linalg.eigs(Ham.transpose(), k=1, sigma=w, which="LM", v0=Ab.flatten())
         w1 = w1[0]
         vL = vL[:,0]
+<<<<<<< Updated upstream
         print("Eigen solving step 3, w1 = {}".format(w1))
 
     else:
+=======
+        #log_write("Eigen solving step 3, w1 = {}".format(w1))
 
-        #print("Eigen solving step 1")
+    except Exception as e:
+
+        log_write(f"{e}, Using non-sparse algorithm...", end=" ")
+>>>>>>> Stashed changes
+
+        #log_write("Eigen solving step 1")
         w, v = LA.eig(Ham)
         a = select_arg(w)
         w = w[a]
         v = v[:,a]
-        #print("Eigen solving step 2, w = {}".format(w))
+        #log_write("Eigen solving step 2, w = {}".format(w))
         w1, vL = LA.eig(Ham.transpose())
         a = select_arg(w1)
         w1 = w1[a]
         vL = vL[:,a]
-        #print("Eigen solving step 3, w1 = {}".format(w1))
+        #log_write("Eigen solving step 3, w1 = {}".format(w1))
 
+<<<<<<< Updated upstream
     if np.abs(w-w1) > 1e-6:
         print("Fails to converge to the same eigenvalue: right eigenvalue {:.8f}, left eigenvalue {:.8f}".format(w, w1))
+=======
+    if np.abs(w-w1) > max(10*tol, 1e-14):
+        log_write(f"L-R Eigenvalue error {np.abs(w-w1)} / tol {tol}...", end=" ")
+>>>>>>> Stashed changes
     
     # Normalize the left- and right- eigenvectors
     v, vL = unitize(v, vL)
 
+<<<<<<< Updated upstream
+=======
+    log_write(f"Done in {time()-t1}s")
+
+>>>>>>> Stashed changes
     return (w+w1)/2, np.reshape(v, np.shape(A)), np.reshape(vL, np.shape(Ab))
 
 def left_decomp_lrrho (M, Mb, chi_max = 0, timing = False):
 
     if timing:
         t1 = time()
-        print("In decomp_lrrho")
+        log_write("In decomp_lrrho")
 
     if len(np.shape(M)) == 2:
         M = M.reshape(1,np.shape(M)[0], np.shape(M)[1])
@@ -305,7 +363,7 @@ def left_decomp_lrrho (M, Mb, chi_max = 0, timing = False):
     U = U.reshape(dL, dS, -1)
 
     if timing:
-        print("lrrho cost {}s".format(time()-t1))
+        log_write("lrrho cost {}s".format(time()-t1))
 
     return U, U.conj(), I, Ib
     
