@@ -21,7 +21,7 @@ def doDMRG_excited(M, Mb, W, chi_max, k=1, which = "SM", expected_gap = 1, numsw
 
         Ekeep, Hdifs, Y, Yb, Z, Zb = doDMRG_IncChi(M, Mb, W, chi_max, which = which,
             normalize_against = [(Ms[i],Mbs[i],-expected_gap*(thisk-i)) for i in range(thisk)],
-            vt_amp=4, vary_tol=3,
+            vt_amp=4,
             numsweeps=numsweeps,dispon=dispon,debug=debug,method=method,cut=cut)
         if np.abs(Hdifs[-1]) < 1e-3:
             print(f"Found eigenvalue #{thisk+1}")
@@ -56,15 +56,18 @@ def doDMRG_excited(M, Mb, W, chi_max, k=1, which = "SM", expected_gap = 1, numsw
     return Ms, Mbs, Es
     
 
-def doDMRG_IncChi (M, Mb, W, chi_max, chi_inc = 10, inc_sweeps = 2, vary_tol = 4, vt_amp = 3, vt_sweeps = 3, numsweeps = 10, dispon = 2, debug = False, which = "SR", method = "biortho", cut = 1e-8, normalize_against = []):
+def doDMRG_IncChi (M, Mb, W, chi_max, chi_inc = 10, chi_start = 20, inc_sweeps = 2, tol_start = 1e-3, vt_amp = 3, vt_sweeps = 3, numsweeps = 10, dispon = 2, debug = False, which = "SR", method = "biortho", cut = 1e-8, normalize_against = []):
 
-    chi = min(chi_inc, chi_max)
+    chi = chi_start
     while chi < chi_max:
-        _,_,M,Mb,_,_ = doDMRG_bb(M, Mb, W, chi, tol=np.finfo(float).eps*(10**(vt_amp*vary_tol)),numsweeps=inc_sweeps,dispon=dispon,updateon=True,debug=debug,which=which,method=method,normalize_against=normalize_against)
+        _,_,M,Mb,_,_ = doDMRG_bb(M, Mb, W, chi, tol=tol_start,numsweeps=inc_sweeps,dispon=dispon,updateon=True,debug=debug,which=which,method=method,normalize_against=normalize_against)
         chi = min(chi+chi_inc, chi_max)
 
-    for i in range(vary_tol,0,-1):
-        _,_,M,Mb,_,_ = doDMRG_bb(M, Mb, W, chi, tol=np.finfo(float).eps*(10**(vt_amp*i)),numsweeps=vt_sweeps,dispon=dispon,updateon=True,debug=debug,which=which,method=method,normalize_against=normalize_against)
+    tol = tol_start
+    tol_end = np.finfo(float).eps
+    while tol > tol_end:
+        _,_,M,Mb,_,_ = doDMRG_bb(M, Mb, W, chi, tol=tol,numsweeps=vt_sweeps,dispon=dispon,updateon=True,debug=debug,which=which,method=method,normalize_against=normalize_against)
+        tol *= 10**(-vt_amp)
 
     return doDMRG_bb(M, Mb, W, chi_max, numsweeps=numsweeps,dispon=dispon,updateon=True,debug=debug,which=which,method=method,normalize_against=normalize_against)
 
@@ -173,7 +176,8 @@ Optional arguments:
 
             # Optimize at this step
             if updateon:
-                E, M[p], Mb[p] = eigLR(L[p], R[p], W[p], M[p], Mb[p], which = which, tol=tol, normalize_against = [(LNA[i],RNA[i],MNb[i],LNAb[i],RNAb[i],MN[i],Namp[i]) for i in range(NumNA)])
+                E, M[p], Mb[p] = eigLR(L[p], R[p], W[p], M[p], Mb[p], which = which, tol=tol,
+                    normalize_against = [(LNA[i][p],RNA[i][p],MNb[i][p],LNAb[i][p],RNAb[i][p],MN[i][p],Namp[i]) for i in range(NumNA)])
                 Ekeep = np.append(Ekeep, E)
 
             # Move the pointer one site to the right, and left-normalize the matrices at the currenter pointer
@@ -187,7 +191,7 @@ Optional arguments:
 
             for i in range(NumNA):
                 LNA[i][p+1] = ncon([LNA[i][p], MNb[i][p], Y[p]], [[1,2],[1,3,-1],[2,3,-2]])
-                LNAb[i][p+1] = ncon([LNAb[i][p], Yb[p], MN[i][p]], [[1,2],[1,3,-1],[-2,3,-2]])
+                LNAb[i][p+1] = ncon([LNAb[i][p], Yb[p], MN[i][p]], [[1,2],[1,3,-1],[2,3,-2]])
         
             ##### display energy
             if dispon == 2:
@@ -202,7 +206,8 @@ Optional arguments:
 
             # Optimize at this step
             if updateon:
-                E, M[p], Mb[p] = eigLR(L[p], R[p], W[p], M[p], Mb[p], which = which, tol=tol, normalize_against = [(LNA[i],RNA[i],MNb[i],LNAb[i],RNAb[i],MN[i],Namp[i]) for i in range(NumNA)])
+                E, M[p], Mb[p] = eigLR(L[p], R[p], W[p], M[p], Mb[p], which = which, tol=tol,
+                    normalize_against = [(LNA[i][p],RNA[i][p],MNb[i][p],LNAb[i][p],RNAb[i][p],MN[i][p],Namp[i]) for i in range(NumNA)])
                 Ekeep = np.append(Ekeep, E)
 
             # Move the pointer one site to the left, and right-normalize the matrices at the currenter pointer

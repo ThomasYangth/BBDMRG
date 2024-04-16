@@ -71,7 +71,7 @@ def compare_DMRG_to_ED_X (mpo, k, chi_max=50, numsweeps=10, which = "SM", M=None
     for i in range(k):
 
         mw = mws[i]
-        vD = MPO(Ms).contract().flatten()
+        vD = MPO(Ms[i]).contract().flatten()
 
         angle = np.abs(np.conj(vD) @ v[:,mw]) / (LA.norm(vD) * LA.norm(v[:,mw]))
 

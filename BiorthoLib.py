@@ -300,7 +300,7 @@ def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True, tol = 0, normalize_a
         #print("Eigen solving step 3, w1 = {}".format(w1))
 
     if np.abs(w-w1) > max(10*tol, 1e-14):
-        print("Fails to converge to the same eigenvalue: right eigenvalue {:.8f}, left eigenvalue {:.8f}".format(w, w1))
+        print(f"L-R Eigenvalue error {np.abs(w-w1)} / tol {tol}...", end=" ")
     
     # Normalize the left- and right- eigenvectors
     v, vL = unitize(v, vL)
