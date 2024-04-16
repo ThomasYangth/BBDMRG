@@ -226,7 +226,7 @@ etab (left' - temp')
 """
 
 
-def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True):
+def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True, tol = 0, normalize_against = []):
 
     t1 = time()
 
@@ -235,6 +235,12 @@ def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True):
     dim = np.array(np.shape(Ham)[:3]).prod()
     dim = dim.item()
     Ham = np.reshape(Ham, (dim,dim))
+
+    for norm_tuple in normalize_against:
+        Ln,Rn,Mnb,Lnb,Rnb,Mn,amp = norm_tuple
+        Hb = ncon([Ln,Rn,Mnb],[[1,-1],[2,-3],[1,-2,2]])
+        H = ncon([Lnb,Rnb,Mn],[[-1,1],[-3,2],[1,-2,2]])
+        Ham += amp * np.tensordot(H.flatten(), Hb.flatten(), axes=0)
 
     def select_arg (w):
         if which == "SR":
@@ -263,16 +269,16 @@ def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True):
         #print("Using sparse: "+str(sparse_ratio))
         #print("Eigen solving step 1")
         if isinstance(which, str):
-            w, v = sparse.linalg.eigs(Hspr, k=1, which=which, v0=A.flatten(), maxiter=10000)
+            w, v = sparse.linalg.eigs(Hspr, k=1, which=which, v0=A.flatten(), maxiter=1000, tol=tol)
         elif isinstance(which, complex):
             #print(f"EigLR which = {which}")
-            w, v = sparse.linalg.eigs(Hspr, k=1, sigma=which, which="LM", v0=A.flatten(), maxiter=10000)
+            w, v = sparse.linalg.eigs(Hspr, k=1, sigma=which, which="LM", v0=A.flatten(), maxiter=1000, tol=tol)
         else:
             raise Exception()
         w = w[0]
         v = v[:,0]
         #print("Eigen solving step 2, w = {}".format(w))
-        w1, vL = sparse.linalg.eigs(Hspr.transpose(), k=1, sigma=w, which="LM", v0=Ab.flatten())
+        w1, vL = sparse.linalg.eigs(Hspr.transpose(), k=1, sigma=w, which="LM", v0=Ab.flatten(), tol=tol)
         w1 = w1[0]
         vL = vL[:,0]
         #print("Eigen solving step 3, w1 = {}".format(w1))
@@ -293,7 +299,7 @@ def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True):
         vL = vL[:,a]
         #print("Eigen solving step 3, w1 = {}".format(w1))
 
-    if np.abs(w-w1) > 1e-6:
+    if np.abs(w-w1) > max(10*tol, 1e-14):
         print("Fails to converge to the same eigenvalue: right eigenvalue {:.8f}, left eigenvalue {:.8f}".format(w, w1))
     
     # Normalize the left- and right- eigenvectors

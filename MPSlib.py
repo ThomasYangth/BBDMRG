@@ -162,6 +162,12 @@ class MPO:
     def copy (self):
         return MPO([np.copy(W) for W in self.Wlist])
 
+    def transpose (self):
+        mpo1 = self.copy()
+        for i in range(len(mpo1)):
+            mpo1.Wlist[i] = mpo1.Wlist[i].transpose([0,1,3,2])
+        return mpo1
+
     def __len__ (self):
         return len(self.Wlist)
     

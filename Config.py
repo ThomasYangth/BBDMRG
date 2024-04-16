@@ -1,5 +1,5 @@
 
-USE_GPU = True
+USE_GPU = False
 
 if USE_GPU:
     import cupy as cp
