@@ -129,7 +129,7 @@ def plot_DMRG_spectrum (mpo, M=None, Mb=None):
 mpo = LindbladMPO(5, Operator({"ZZ":1, "X":0.5}), [Operator({"X":0.1,"Y":0.1j}), Operator({"Z":0.1})], dagger=False)
 #time_DMRG(mpo, which=-2+0j)
 #compare_DMRG_to_ED(mpo, -0.1+0j, chi_max=40, method="lrrho")
-compare_DMRG_to_ED_X(mpo, 2, chi_max=40, numsweeps=5, which="LR", method="lrrho", stop_if_not_converge=False)
+compare_DMRG_to_ED_X(mpo, 2, chi_max=40, numsweeps=5, which="SM", method="lrrho", stop_if_not_converge=False)
 exit()
 
 
