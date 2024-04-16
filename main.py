@@ -71,7 +71,7 @@ def compare_DMRG_to_ED_X (mpo, k, chi_max=50, numsweeps=10, which = "SM", M=None
     for i in range(k):
 
         mw = mws[i]
-        vD = MPO(Ms[i]).contract().flatten()
+        vD = MPS(Ms[i]).contract().flatten()
 
         angle = np.abs(np.conj(vD) @ v[:,mw]) / (LA.norm(vD) * LA.norm(v[:,mw]))
 
@@ -126,10 +126,10 @@ def plot_DMRG_spectrum (mpo, M=None, Mb=None):
     print(f"DMRG Energy {Ek[-1]} v.s. ED Energy {w[mw]}")
     print(f"State overlap: {angle}")
 
-mpo = LindbladMPO(5, Operator({"ZZ":1, "X":0.5}), [Operator({"X":0.1,"Y":0.1j}), Operator({"Z":0.1})], dagger=False)
+mpo = LindbladMPO(6, Operator({"ZZ":1, "X":0.5}), [Operator({"X":0.1,"Y":0.1j}), Operator({"Z":0.1})], dagger=False)
 #time_DMRG(mpo, which=-2+0j)
 #compare_DMRG_to_ED(mpo, -0.1+0j, chi_max=40, method="lrrho")
-compare_DMRG_to_ED_X(mpo, 2, chi_max=40, numsweeps=5, which="SM", method="lrrho", stop_if_not_converge=False)
+compare_DMRG_to_ED_X(mpo, 5, chi_max=25, numsweeps=5, which="SM", method="lrrho", stop_if_not_converge=False)
 exit()
 
 

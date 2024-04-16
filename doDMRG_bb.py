@@ -21,7 +21,7 @@ def doDMRG_excited(M, Mb, W, chi_max, k=1, which = "SM", expected_gap = 1, numsw
 
         Ekeep, Hdifs, Y, Yb, Z, Zb = doDMRG_IncChi(M, Mb, W, chi_max, which = which,
             normalize_against = [(Ms[i],Mbs[i],-expected_gap*(thisk-i)) for i in range(thisk)],
-            vt_amp=4,
+            vt_amp=4, chi_start=16,
             numsweeps=numsweeps,dispon=dispon,debug=debug,method=method,cut=cut)
         if np.abs(Hdifs[-1]) < 1e-3:
             print(f"Found eigenvalue #{thisk+1}")
@@ -56,20 +56,24 @@ def doDMRG_excited(M, Mb, W, chi_max, k=1, which = "SM", expected_gap = 1, numsw
     return Ms, Mbs, Es
     
 
-def doDMRG_IncChi (M, Mb, W, chi_max, chi_inc = 10, chi_start = 20, inc_sweeps = 2, tol_start = 1e-3, vt_amp = 3, vt_sweeps = 3, numsweeps = 10, dispon = 2, debug = False, which = "SR", method = "biortho", cut = 1e-8, normalize_against = []):
+def doDMRG_IncChi (M, Mb, W, chi_max, chi_inc = 10, chi_start = 20, init_sweeps = 5, inc_sweeps = 2, tol_start = 1e-3, tol_end = 1e-6, vt_amp = 3, vt_sweeps = 3, numsweeps = 10, dispon = 2, debug = False, which = "SR", method = "biortho", cut = 1e-8, normalize_against = []):
 
+    _,_,M,Mb,_,_ = doDMRG_bb(M, Mb, W, chi_start, tol=tol_start,numsweeps=init_sweeps,dispon=dispon,updateon=True,debug=debug,which=which,method=method,normalize_against=normalize_against)
+    
     chi = chi_start
-    while chi < chi_max:
+    while True:
+        chi += chi_inc
+        if chi >= chi_max:
+            break
         _,_,M,Mb,_,_ = doDMRG_bb(M, Mb, W, chi, tol=tol_start,numsweeps=inc_sweeps,dispon=dispon,updateon=True,debug=debug,which=which,method=method,normalize_against=normalize_against)
-        chi = min(chi+chi_inc, chi_max)
 
+    chi = chi_max
     tol = tol_start
-    tol_end = np.finfo(float).eps
     while tol > tol_end:
         _,_,M,Mb,_,_ = doDMRG_bb(M, Mb, W, chi, tol=tol,numsweeps=vt_sweeps,dispon=dispon,updateon=True,debug=debug,which=which,method=method,normalize_against=normalize_against)
         tol *= 10**(-vt_amp)
 
-    return doDMRG_bb(M, Mb, W, chi_max, numsweeps=numsweeps,dispon=dispon,updateon=True,debug=debug,which=which,method=method,normalize_against=normalize_against)
+    return doDMRG_bb(M, Mb, W, chi_max, tol=tol_end, numsweeps=numsweeps,dispon=dispon,updateon=True,debug=debug,which=which,method=method,normalize_against=normalize_against)
 
 
 def doDMRG_bb(M, Mb, W, chi_max, numsweeps = 10, dispon = 2, updateon = True, debug = False, which = "SR", method = "biortho", tol=0, normalize_against = []):
