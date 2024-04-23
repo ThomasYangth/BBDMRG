@@ -226,15 +226,18 @@ etab (left' - temp')
 """
 
 
-def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True, tol = 0, normalize_against = []):
+def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True, tol = 0, normalize_against = [], log_write = print, ncv = 50):
 
     t1 = time()
 
     Ham = ncon([L,R,M],[[1,-1,-4],[2,-3,-6],[1,2,-2,-5]])
-    print(f"In eigLR, bond dimensions: {np.shape(Ham)[:3]}...", end=" ")
+    log_write(f"In eigLR, bond dimensions: {np.shape(Ham)[:3]}...", end=" ")
     dim = np.array(np.shape(Ham)[:3]).prod()
     dim = dim.item()
     Ham = np.reshape(Ham, (dim,dim))
+    ncv = min(ncv, dim)
+
+    which_is_number = isinstance(which, complex) or isinstance(which, float) or isinstance(which, int)
 
     for norm_tuple in normalize_against:
         Ln,Rn,Mnb,Lnb,Rnb,Mn,amp = norm_tuple
@@ -249,7 +252,7 @@ def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True, tol = 0, normalize_a
             return np.argsort(np.abs(w))[0]
         elif which == "LR":
             return np.argsort(np.real(w))[-1]
-        elif isinstance(which, complex):
+        elif which_is_number:
             return np.argsort(np.abs(w-which))[0]
         else:
             raise Exception("Invalid instance which = {}".format(which))
@@ -262,50 +265,50 @@ def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True, tol = 0, normalize_a
         if not isinstance(Ham, numpy.ndarray):
             Ham = Ham.get()
 
-        print(f"Using sparse algorithm...", end=" ")
+        log_write(f"Using sparse algorithm...", end=" ")
 
         Hspr = sparse.csr_matrix(Ham)
         #sparse_ratio = Hspr.count_nonzero()/np.size(Hspr.toarray())
-        #print("Using sparse: "+str(sparse_ratio))
-        #print("Eigen solving step 1")
+        #log_write("Using sparse: "+str(sparse_ratio))
+        #log_write("Eigen solving step 1")
         if isinstance(which, str):
-            w, v = sparse.linalg.eigs(Hspr, k=1, which=which, v0=A.flatten(), maxiter=1000, tol=tol)
-        elif isinstance(which, complex):
-            #print(f"EigLR which = {which}")
-            w, v = sparse.linalg.eigs(Hspr, k=1, sigma=which, which="LM", v0=A.flatten(), maxiter=1000, tol=tol)
+            w, v = sparse.linalg.eigs(Hspr, k=1, which=which, v0=A.flatten(), maxiter=1000, tol=tol, ncv=ncv)
+        elif which_is_number:
+            #log_write(f"EigLR which = {which}")
+            w, v = sparse.linalg.eigs(Hspr, k=1, sigma=which, which="LM", v0=A.flatten(), maxiter=1000, tol=tol, ncv=ncv)
         else:
             raise Exception()
         w = w[0]
         v = v[:,0]
-        #print("Eigen solving step 2, w = {}".format(w))
-        w1, vL = sparse.linalg.eigs(Hspr.transpose(), k=1, sigma=w, which="LM", v0=Ab.flatten(), tol=tol)
+        #log_write("Eigen solving step 2, w = {}".format(w))
+        w1, vL = sparse.linalg.eigs(Hspr.transpose(), k=1, sigma=w, which="LM", v0=Ab.flatten(), tol=tol, ncv=ncv)
         w1 = w1[0]
         vL = vL[:,0]
-        #print("Eigen solving step 3, w1 = {}".format(w1))
+        #log_write("Eigen solving step 3, w1 = {}".format(w1))
 
     except Exception as e:
 
-        print(f"{e}, Using non-sparse algorithm...", end=" ")
+        log_write(f"{e}, Using non-sparse algorithm...", end=" ")
 
-        #print("Eigen solving step 1")
+        #log_write("Eigen solving step 1")
         w, v = LA.eig(Ham)
         a = select_arg(w)
         w = w[a]
         v = v[:,a]
-        #print("Eigen solving step 2, w = {}".format(w))
+        #log_write("Eigen solving step 2, w = {}".format(w))
         w1, vL = LA.eig(Ham.transpose())
         a = select_arg(w1)
         w1 = w1[a]
         vL = vL[:,a]
-        #print("Eigen solving step 3, w1 = {}".format(w1))
+        #log_write("Eigen solving step 3, w1 = {}".format(w1))
 
     if np.abs(w-w1) > max(10*tol, 1e-14):
-        print(f"L-R Eigenvalue error {np.abs(w-w1)} / tol {tol}...", end=" ")
+        log_write(f"L-R Eigenvalue error {np.abs(w-w1)} / tol {tol}...", end=" ")
     
     # Normalize the left- and right- eigenvectors
     v, vL = unitize(v, vL)
 
-    print(f"Done in {time()-t1}s")
+    log_write(f"Done in {time()-t1}s")
 
     return (w+w1)/2, np.reshape(v, np.shape(A)), np.reshape(vL, np.shape(Ab))
 

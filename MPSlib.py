@@ -131,6 +131,12 @@ class MPS:
     
     def __repr__(self):
         return self.__str__()
+
+    def asdict (self, name = "M"):
+        dct = {}
+        for i,M in enumerate(self.Mlist):
+            dct[f"{name}{i}"] = M
+        return dct
     
 class MPO:
 
@@ -252,6 +258,12 @@ class MPO:
     
     def __repr__(self):
         return self.__str__()
+
+    def asdict (self, name = "W"):
+        dct = {}
+        for i,W in enumerate(self.Wlist):
+            dct[f"{name}{i}"] = W
+        return dct
     
 def expectation (psiL, psiR, *ops):
     L = len(psiL)
