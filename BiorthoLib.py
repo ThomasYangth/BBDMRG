@@ -3,6 +3,8 @@ from scipy import linalg as sLA
 from scipy import sparse
 from time import time
 import numpy
+from numbers import Number
+import traceback
 
 def left_decomp (M, Mb, chi_max = 0, timing = False, method = "biortho"):
     if method == "biortho":
@@ -226,7 +228,7 @@ etab (left' - temp')
 """
 
 
-def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True, tol = 0, normalize_against = [], log_write = print, ncv = 50):
+def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True, tol = 0, normalize_against = [], log_write = print, ncv = 50, library = "ARPACK"):
 
     t1 = time()
 
@@ -237,7 +239,7 @@ def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True, tol = 0, normalize_a
     Ham = np.reshape(Ham, (dim,dim))
     ncv = min(ncv, dim)
 
-    which_is_number = isinstance(which, complex) or isinstance(which, float) or isinstance(which, int)
+    which_is_number = isinstance(which, (Number, np.number))
 
     for norm_tuple in normalize_against:
         Ln,Rn,Mnb,Lnb,Rnb,Mn,amp = norm_tuple
@@ -256,6 +258,23 @@ def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True, tol = 0, normalize_a
             return np.argsort(np.abs(w-which))[0]
         else:
             raise Exception("Invalid instance which = {}".format(which))
+        
+    select_arg(np.array([0]))
+
+    def sparse_eig (H, which, v0, tol):
+
+        tncv = ncv
+    
+        while True:
+            try:
+                if isinstance(which, str):
+                    return sparse.linalg.eigs(H, k=1, which=which, v0=v0, maxiter=10000, tol=tol, ncv=tncv)
+                else:
+                    return sparse.linalg.eigs(H, k=1, sigma=which, which="LM", v0=v0, maxiter=10000, tol=tol, ncv=tncv)
+            except sparse.linalg.ArpackNoConvergence:
+                tncv += ncv
+            if tncv >= dim / 5:
+                raise Exception(f"No convergence at ncv = {tncv}")
 
     try:
 
@@ -271,13 +290,7 @@ def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True, tol = 0, normalize_a
         #sparse_ratio = Hspr.count_nonzero()/np.size(Hspr.toarray())
         #log_write("Using sparse: "+str(sparse_ratio))
         #log_write("Eigen solving step 1")
-        if isinstance(which, str):
-            w, v = sparse.linalg.eigs(Hspr, k=1, which=which, v0=A.flatten(), maxiter=1000, tol=tol, ncv=ncv)
-        elif which_is_number:
-            #log_write(f"EigLR which = {which}")
-            w, v = sparse.linalg.eigs(Hspr, k=1, sigma=which, which="LM", v0=A.flatten(), maxiter=1000, tol=tol, ncv=ncv)
-        else:
-            raise Exception()
+        w, v = sparse_eig(Hspr, which, A.flatten(), tol)
         w = w[0]
         v = v[:,0]
         #log_write("Eigen solving step 2, w = {}".format(w))
@@ -288,7 +301,9 @@ def eigLR (L, R, M, A, Ab, which = 'SR', use_sparse = True, tol = 0, normalize_a
 
     except Exception as e:
 
-        log_write(f"{e}, Using non-sparse algorithm...", end=" ")
+        print(e)
+        print(traceback.format_exc())
+        log_write("Using non-sparse algorithm...", end=" ")
 
         #log_write("Eigen solving step 1")
         w, v = LA.eig(Ham)
@@ -324,7 +339,7 @@ def left_decomp_lrrho (M, Mb, chi_max = 0, timing = False):
     if np.shape(M) != np.shape(Mb):
         raise Exception("The shape of M and Mb must be identical!")
         
-    dL, dS, _ = np.shape(M)
+    dL, dS, dR = np.shape(M)
     M = M.reshape(dL*dS,-1)
     Mb = Mb.reshape(dL*dS,-1)
     rho = (M@M.conj().T + Mb.conj()@Mb.T)/2

@@ -5,6 +5,17 @@ from Config import *
 from BiorthoLib import left_decomp, right_decomp, eigLR
 from MPSlib import *
 from datetime import datetime
+from gc import collect as gc_collect
+import psutil
+from os.path import isfile
+
+def track_memory(log = print):
+    memory_usage = psutil.virtual_memory()
+    # Print memory usage statistics
+    log(f"Total Memory: {memory_usage.total / (1024 * 1024)} MB")
+    log(f"Available Memory: {memory_usage.available / (1024 * 1024)} MB")
+    log(f"Used Memory: {memory_usage.used / (1024 * 1024)} MB")
+    log(f"Percentage Memory Used: {memory_usage.percent}%")
 
 def doDMRG_excited(M, Mb, W, chi_max, k=1, which = "SM", expected_gap = 1, tol = 1e-15, numsweeps = 10, dispon = 2, debug = False, method = "biortho", cut = 1e-8, stop_if_not_converge = True, log_write = print, savename = None):
 
@@ -14,11 +25,45 @@ def doDMRG_excited(M, Mb, W, chi_max, k=1, which = "SM", expected_gap = 1, tol =
     Mbs = []
     Es = []
 
+    chi_start = 30
+    vt_amp = 15
+
     if savename is None:
         savename = datetime.now().strftime("%m%d%Y-%H%M%S")
 
     if not isinstance(W, MPO):
         W = MPO(W)
+
+    if isfile(savename+".npz"):
+
+        print(f"Loaded file {savename}.npz")
+
+        with np.load(savename+".npz") as dat:
+
+            try:
+                Es = dat["Es"]
+            except:
+                pass
+
+            for i in range(k):
+
+                try:
+                    thisM = []
+                    for j in range(len(W)):
+                        thisM.append(dat[f"M{i}L{j}"])
+                    Ms.append(MPS(thisM))
+                except:
+                    break
+
+            for i in range(k):
+                
+                try:
+                    thisM = []
+                    for j in range(len(W)):
+                        thisM.append(dat[f"M{i}R{j}"])
+                    Mbs.append(MPS(thisM))
+                except:
+                    break
 
     def dosave():
         dct = {"Es": Es}
@@ -30,36 +75,38 @@ def doDMRG_excited(M, Mb, W, chi_max, k=1, which = "SM", expected_gap = 1, tol =
         del dct
         log_write(f"Saved current data: len(Es)={len(Es)}, len(Ms)={len(Ms)}, len(Mbs)={len(Mbs)}.")
 
-    for thisk in range(k):
+    for thisk in range(len(Mbs), k):
+
         log_write(f"Finding eigenvalue #{thisk+1}")
 
-        Ekeep, Hdifs, Y, Yb, Z, Zb = doDMRG_IncChi(M, Mb, W, chi_max, which = which,
-            normalize_against = [(Ms[i],Mbs[i],-expected_gap*(thisk-i)) for i in range(thisk)],
-            vt_amp=3, tol_end=tol, chi_start=16,
-            numsweeps=numsweeps,dispon=dispon,debug=debug,method=method,log_write=log_write)
-        if np.abs(Hdifs[-1]) < 1e-3:
-            log_write(f"Found eigenvalue #{thisk+1}")
+        if thisk < len(Ms):
+
+            _,_,_,_, Z, Zb = doDMRG_bb(Ms[thisk], Ms[thisk].conj(), W, chi_max, numsweeps=0, updateon=False)
+
         else:
-            if stop_if_not_converge:
-                raise Exception(f"Failed to converge for eigenvalue #{thisk+1}: <Delta H^2> = {Hdifs[-1]}")
+
+            Ekeep, Hdifs, Y, Yb, Z, Zb = doDMRG_IncChi(M, Mb, W, chi_max, which = which,
+                normalize_against = [(Ms[i],Mbs[i],-expected_gap*(thisk-i)) for i in range(thisk)],
+                vt_amp=vt_amp, tol_end=tol, chi_start=chi_start,
+                numsweeps=numsweeps,dispon=dispon,debug=debug,method=method,log_write=log_write)
+            if np.abs(Hdifs[-1]) < 1e-3:
+                log_write(f"Found eigenvalue #{thisk+1}")
             else:
-                log_write(f"ERROR: Failed to converge for eigenvalue #{thisk+1}: <Delta H^2> = {Hdifs[-1]}")
+                if stop_if_not_converge:
+                    raise Exception(f"Failed to converge for eigenvalue #{thisk+1}: <Delta H^2> = {Hdifs[-1]}")
+                else:
+                    log_write(f"ERROR: Failed to converge for eigenvalue #{thisk+1}: <Delta H^2> = {Hdifs[-1]}")
 
-        M = [Zi.copy() for Zi in Z]
-        Mb = [Zbi.copy() for Zbi in Z]
+            Es.append(Ekeep[-1])
+            Ms.append(Y)
+            dosave()
 
-        Es.append(Ekeep[-1])
-        Ms.append(Y)
-
-        dosave()
-        
         if method == "biortho":
             Mbs.append(Yb)
-
         else:
             Ekeep, Hdifs, Y, _, _, _ = doDMRG_IncChi(Zb, Z, W.transpose(), chi_max, which = Es[-1],
             normalize_against = [(Mbs[i],Ms[i],-expected_gap*(thisk-i)) for i in range(thisk)],
-            vt_amp=3, tol_end=tol, chi_start=16,
+            vt_amp=vt_amp, tol_end=tol, chi_start=chi_start,
             numsweeps=numsweeps,dispon=dispon,debug=debug,method=method,log_write=log_write)
             
             if np.abs(Hdifs[-1]) > 1e-3 or np.abs(Ekeep[-1]-Es[-1]) > 1e-3:
@@ -280,5 +327,10 @@ Optional arguments:
             k = numsweeps+1
 
         k += 1
+        track_memory(log_write)
+
+    del LNA, RNA, LNAb, RNAb, Namp, MN, MNb, L, R, RR
+    gc_collect()
+    track_memory(log_write)
             
     return Ekeep, Hdifs, Y, Yb, Z, Zb
