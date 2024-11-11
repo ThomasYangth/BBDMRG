@@ -1,20 +1,18 @@
-from Config import *
-from numbers import Number
-
 # Initializations for multiplication functions
-def single_times (id1, id2):
-    if id1 == 0:
+function single_times (id1, id2)
+    if id1 == 1
         return 1, id2 # Id times anything gives itself
-    elif id2 == 0:
+    elseif id2 == 1
         return 1, id1 # Id times anything gives itself
-    elif id1 == id2:
+    elseif id1 == id2
         return 1, 0 # Each of Sx, Sy, Sz squares to Id
-    else:
-        res = 6-id1-id2
-        return (1j if id2-1==(res-2)%3 else -1j), res
+    else
+        return ((id2-id1+3)%3==1 ? 1im:-1im), 9-id1-id2
+    end
+end
 
 # Multiply two terms
-def term_times (inds1, inds2):
+function term_times (inds1, inds2)
     coeff = 1
     if isinstance(inds1, Term):
         coeff *= inds1.coef

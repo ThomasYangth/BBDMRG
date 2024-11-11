@@ -2,7 +2,6 @@
 # doDMRG_bb.py
 
 using Dates
-using TensorOperations
 using Statistics # For std
 using JLD2 # For saving and processing array
 
@@ -10,14 +9,6 @@ include("Config.jl")
 include("BiorthoLib.jl")
 
 using Printf
-
-function fmtf(x)
-    return @sprintf("%.3f", x)
-end
-
-function fmtcpx(z)
-    return @sprintf("%.3f %+.3fim", real(z), imag(z))
-end
 
 """
     doDMRG_excited(M, Mb, W, chi_max;
@@ -55,12 +46,12 @@ function doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
 
     Ms = Array{MPS, 1}()
     Mbs = Array{MPS, 1}()
-    Es = Array{Complex, 1}()
+    Es = Array{ComplexF64, 1}()
 
     chi_start = 30 # 
     vt_amp = 15
 
-    if savename is nothing
+    if isnothing(savename)
         savename = Dates.format(now(), "MMddyy-HHMMSS")
     end
 
@@ -80,26 +71,34 @@ function doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
             end
 
             # Read the already converged eigenstates
-            k_loop_1:
+            k_loop_1 = false
             for i = 1:k
                 thisM = []
                 for j = 1:L
                     if !haskey(file, "M$(i)R$(j)")
-                        break k_loop_1
+                        k_loop_1 = true
+                        break
                     end
                     push!(thisM, file["M$(i)R$(j)"])
+                end
+                if k_loop_1
+                    break
                 end
                 push!(Ms, MPS(thisM))
             end
 
-            k_loop_2:
+            k_loop_2 = false
             for i = 1:k
                 thisM = []
                 for j = 1:L
                     if !haskey(file, "M$(i)L$(j)")
-                        break k_loop_2
+                        k_loop_2 = true
+                        break
                     end
                     push!(thisM, file["M$(i)L$(j)"])
+                end
+                if k_loop_2
+                    break
                 end
                 push!(Mbs, MPS(thisM))
             end
@@ -112,16 +111,16 @@ function doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
 
             file["Es"] = Es
 
-            for i, M in enumerate(Ms)
-                for key, mat in M.asdict("M$(i)R")
+            for (i,M) in enumerate(Ms)
+                for (key,mat) in M.asdict("M$(i)R")
                     if override && !haskey(file, key)
                         file[key] = mat
                     end
                 end
             end
 
-            for i, M in enumerate(Mbs)
-                for key, mat in M.asdict("M$(i)L")
+            for (i,M) in enumerate(Mbs)
+                for (key,mat) in M.asdict("M$(i)L")
                     if override && !haskey(file, key)
                         file[key] = mat
                     end
@@ -138,12 +137,12 @@ function doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
 
         if thisk == length(Ms) + 1
 
-            sigma = Complex(0)
+            sigma = ComplexF64(0)
             #sigma = length(Es) > 0 ? Es[end] : 0
 
             if method == BB
 
-                Ekeep, Hdifs, Y, Yb, _, _ = doDMRG_IncChi(M, Mb, W, chi_max;,
+                Ekeep, Hdifs, Y, Yb, _, _ = doDMRG_IncChi(M, Mb, W, chi_max;
                     normalize_against = [(Ms[i],Mbs[i],-expected_gap*(thisk-i)) for i = 1:thisk-1],
                     sigma=sigma, vt_amp=vt_amp, tol_end=tol, chi_start=chi_start,
                     numsweeps=numsweeps, dispon=dispon, debug=debug, method=method)
@@ -153,7 +152,7 @@ function doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
                 else
                     fprintln("ERROR: Failed to converge for eigenvalue $thisk: <Delta H^2> = $(fmtf(Hdifs[end]))")
                     if stop_if_not_converge
-                        throw(RuntimeError())
+                        throw(ErrorException())
                     end
                 end
 
@@ -173,7 +172,7 @@ function doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
                 else
                     fprintln("ERROR: Failed to converge for eigenvalue $thisk: <Delta H^2> = $(fmtf(Hdifs[end]))")
                     if stop_if_not_converge
-                        throw(RuntimeError())
+                        throw(ErrorException())
                     end
                 end
 
@@ -181,7 +180,7 @@ function doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
                 push!(Ms, Y)
 
             else
-                throw(RuntimeError("Unrecognized method: $method"))
+                throw(ArgumentError("Unrecognized method: $method"))
             end
 
             dosave()
@@ -189,7 +188,7 @@ function doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
         end
 
         if thisk != length(Ms)
-            throw(RuntimeError("Unexpected: thisk = $(thisk), length(Ms) = $(length(Ms))."))
+            throw(ErrorException("Unexpected: thisk = $(thisk), length(Ms) = $(length(Ms))."))
         end
 
         if thisk == length(Mbs) + 1 && method == LR
@@ -197,7 +196,7 @@ function doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
             # Right-normalize the M solution
             _,_,_,_, Z, Zb = doDMRG_bb(Ms[thisk], conj.(Ms[thisk]), W, chi_max; numsweeps=0, updateon=false)
 
-            Ekeep, Hdifs, Y, _,_,_ = doDMRG_IncChi(Z, Zb, W, chi_max;,
+            Ekeep, Hdifs, Y, _,_,_ = doDMRG_IncChi(Z, Zb, W, chi_max;
                     normalize_against = [(Ms[i],Mbs[i],-expected_gap*(thisk-i)) for i = 1:thisk-1],
                     sigma = Es[end], vt_amp=vt_amp, tol_end=tol, chi_start=chi_start,
                     numsweeps=numsweeps, dispon=dispon, debug=debug, method=method)
@@ -207,7 +206,7 @@ function doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
             else
                 fprintln("ERROR: Failed to converge for eigenvalue $thisk: <Delta H^2> = $(fmtf(Hdifs[end]))")
                 if stop_if_not_converge
-                    throw(RuntimeError())
+                    throw(ErrorException())
                 end
             end
 
@@ -216,7 +215,7 @@ function doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
         end
 
         if thisk != length(Mbs)
-            throw(RuntimeError("Unexpected: thisk = $(thisk), length(Mbs) = $(length(Mbs))."))
+            throw(ErrorException("Unexpected: thisk = $(thisk), length(Mbs) = $(length(Mbs))."))
         end
 
         dosave()
@@ -232,7 +231,7 @@ function doDMRG_IncChi(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
     chi_inc::Int = 10, chi_start::Int = 20, init_sweeps::Int = 5, inc_sweeps::Int = 2,
     tol_start::Float64 = 1e-3, tol_end::Float64 = 1e-6, vt_amp::Int = 3, vt_sweeps::Int = 3,
     numsweeps::Int = 10, dispon::Int = 2, debug = false, method::DM_Method = LR,
-    sigma::Complex = 0.+0im, normalize_against = [])
+    sigma::ComplexF64 = ComplexF64(0), normalize_against = [])
 
     _,_,M,Mb,_,_ = doDMRG_bb(M, Mb, W, chi_start;
         tol=tol_start, numsweeps=init_sweeps, dispon=dispon, updateon=true,
@@ -252,7 +251,7 @@ function doDMRG_IncChi(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
         _,_,M,Mb,_,_ = doDMRG_bb(M, Mb, W, chi;
             tol=tol, numsweeps=vt_sweeps, dispon=dispon, updateon=true,
             debug=debug, method=method, normalize_against=normalize_against, sigma=sigma)
-        tol *= 10^(-vt_amp)
+        tol *= (10.)^(-vt_amp)
     end
 
     return doDMRG_bb(M, Mb, W, chi_max; tol=tol_end, numsweeps=numsweeps,
@@ -260,29 +259,29 @@ function doDMRG_IncChi(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
 
 end
 
-"""
-------------------------
-By Tian-Hua Yang, based on www.tensors.net, (v1.1) by Glen Evenbly.
-------------------------
+# """
+# ------------------------
+# By Tian-Hua Yang, based on www.tensors.net, (v1.1) by Glen Evenbly.
+# ------------------------
 
-------------------------
-Implementation of DMRG for a 1D chain with open boundaries. Input 'M' is containing the MPS \
-tensors whose length is equal to that of the 1D lattice, and 'Mb' is the corresponding left \
-vector. The Hamiltonian is specified by an MPO with entries 'W'. Automatically grow the MPS bond \
-dimension to maximum dimension 'chi_max'.
+# ------------------------
+# Implementation of DMRG for a 1D chain with open boundaries. Input 'M' is containing the MPS \
+# tensors whose length is equal to that of the 1D lattice, and 'Mb' is the corresponding left \
+# vector. The Hamiltonian is specified by an MPO with entries 'W'. Automatically grow the MPS bond \
+# dimension to maximum dimension 'chi_max'.
 
-Optional arguments:
-`numsweeps::Integer=10`: number of DMRG sweeps
-`dispon::Integer=2`: print data never [0], after each sweep [1], each step [2]
-`updateon::Bool=true`: enable or disable tensor updates
-`debug::Bool=False`: enable debugging messages
-`which::str="SR"`: which eigenvalue to choose, "SR" indicates smallest real part
-`method::str="biortho"`: method for truncation of density matrix; 'biortho' is for bbDMRG, \
-    'lrrho' for using the density matrix rho=(psiL psiL + psiR psiR)/2
-"""
+# Optional arguments:
+# `numsweeps::Integer=10`: number of DMRG sweeps
+# `dispon::Integer=2`: print data never [0], after each sweep [1], each step [2]
+# `updateon::Bool=true`: enable or disable tensor updates
+# `debug::Bool=False`: enable debugging messages
+# `which::str="SR"`: which eigenvalue to choose, "SR" indicates smallest real part
+# `method::str="biortho"`: method for truncation of density matrix; 'biortho' is for bbDMRG, \
+#     'lrrho' for using the density matrix rho=(psiL psiL + psiR psiR)/2
+# """
 function doDMRG_bb(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
-    numsweeps::Int = 10, sigma::Complex = 0.+0im, dispon = 2, updateon = true, debug = false,
-    method::DM_Method = LR, tol::Float=0, normalize_against = []):
+    numsweeps::Int = 10, sigma::ComplexF64 = ComplexF64(0), dispon = 2, updateon = true, debug = false,
+    method::DM_Method = LR, tol::Float64=0., normalize_against = [])
  
     ##### left-to-right 'warmup', put MPS in right orthogonal form
     # Index of W is: left'' - right'' - physical' - physical
@@ -305,11 +304,14 @@ function doDMRG_bb(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
     Namp = []
     MN = []
     MNb = []
-    for i,item in enumerate(normalize_against)
-        LNA.append(fill(Complex.(ones(1,1)), Nsites))
-        RNA.append(fill(Complex.(ones(1,1)), Nsites))
-        LNAb.append(fill(Complex.(ones(1,1)), Nsites))
-        RNAb.append(fill(Complex.(ones(1,1)), Nsites))
+
+    unit_itensor = ITensor(ComplexF64(1))
+
+    for (i,item) in enumerate(normalize_against)
+        LNA.append(fill(unit_itensor, Nsites))
+        RNA.append(fill(unit_itensor, Nsites))
+        LNAb.append(fill(unit_itensor, Nsites))
+        RNAb.append(fill(unit_itensor, Nsites))
         push!(MN, item[1])
         push!(MNb, item[2])
         push!(Namp, item[3])
@@ -317,37 +319,50 @@ function doDMRG_bb(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
     
     # The L[i] operator is the MPO contracted with the MPS and its dagger for sites <= i-1
     # R[i] is contracted for sites >= i+1
-    L = fill(Complex.(ones(1,1,1)), Nsites)
-    R = fill(Complex.(ones(1,1,1)), Nsites)
-    Y = fill(Complex.(ones(1,1,1)), Nsites)
-    Yb = fill(Complex.(ones(1,1,1)), Nsites)
-    Z = fill(Complex.(ones(1,1,1)), Nsites)
-    Zb = fill(Complex.(ones(1,1,1)), Nsites)
+    L = fill(unit_itensor, Nsites)
+    R = fill(unit_itensor, Nsites)
+    Y = fill(unit_itensor, Nsites)
+    Yb = fill(unit_itensor, Nsites)
+    Z = fill(unit_itensor, Nsites)
+    Zb = fill(unit_itensor, Nsites)
 
     for p = Nsites:-1:2 # Do right normalization, from site Nsites to 2
 
         # Shape of M is: left bond - physical bond - right bond
         if size(M[p]) != size(Mb[p])
-            throw(RuntimeError("Shapes of M[p] and Mb[p] must match!"))
+            throw(ArgumentError("Shapes of M[p] and Mb[p] must match!"))
         end
         
         # Set the p-th matrix to right normal form, and multiply the transform matrix to p-1
-        Z[p], Zb[p], I, Ib = right_decomp(M[p], Mb[p]; chi_max=chi_max, timing=debug, method=method)
-        M[p-1] = ncon([M[p-1],I], [[-1,-2,1],[1,-3]])
-        Mb[p-1] = ncon([Mb[p-1],Ib], [[-1,-2,1],[1,-3]])
+        Z[p], Zb[p], I, Ib = decomp(M[p], Mb[p], 1; chi_max=chi_max, timing=debug, method=method) # linkind=0 means last
+
+        M[p-1] = M[p-1]*I
+        Mb[p-1] = Mb[p-1]*Ib
 
         # Construct R[p-1]. The indices of R is: left'' - left' - left
-        R[p-1] = ncon([R[p], W[p], Zb[p], Z[p]],[[3,1,5],[-1,3,2,4],[-2,2,1],[-3,4,5]])
+        R[p-1] = Zb[p]*R[p]*W[p]*Z[p]
+
+        if debug
+            fprintln("M[$p] = ", inds(M[p]))
+            fprintln("Mb[$p] = ", inds(Mb[p]))
+            fprintln("Z[$p] = ", inds(Z[p]))
+            fprintln("Zb[$p] = ", inds(Zb[p]))
+            fprintln("I[$p] = ", inds(I))
+            fprintln("Ib[$p] = ", inds(Ib))
+            fprintln("M[$(p-1)] = ",inds(M[p-1]))
+            fprintln("Mb[$(p-1)] = ", inds(Mb[p-1]))
+            fprintln("R[$(p-1)] = ", inds(R[p-1]))
+        end
 
         for i = 1:NumNA
-            RNA[i][p-1] = ncon([RNA[i][p], MNb[i][p], Z[p]], [[1,2],[-1,3,1],[-2,3,2]])
-            RNAb[i][p-1] = ncon([RNAb[i][p], Zb[p], MN[i][p]], [[1,2],[-1,3,1],[-2,3,2]])
+            RNA[i][p-1] = RNA[i][p]*MNb[i][p]*Z[p]
+            RNAb[i][p-1] = RNAb[i][p]*MN[i][p]*Zb[p]
         end
 
     end
 
     # Normalize M[1] and Mb[1] so that the trial wave functions are bi-normalized
-    ratio = 1/sqrt(ncon([M[0],Mb[0]],[[1,2,3],[1,2,3]]))
+    ratio = 1/sqrt((Mb[1]*(M[1]'))[])
     M[1] *= ratio
     Mb[1] *= ratio
 
@@ -355,7 +370,7 @@ function doDMRG_bb(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
     # We start the sweep at site 0
     # The effective Hamiltonian at site [i] is the contraction of L[i], R[i], and W[i]
     
-    Ekeep = Complex[]
+    Ekeep = ComplexF64[]
     Hdifs = Float64[]
 
     k = 1
@@ -380,22 +395,22 @@ function doDMRG_bb(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
             end
 
             # Move the pointer one site to the right, and left-normalize the matrices at the currenter pointer
-            Y[p], Yb[p], I, Ib = left_decomp(M[p], Mb[p]; chi_max=chi_max, timing=debug, method=method)
+            Y[p], Yb[p], I, Ib = decomp(M[p], Mb[p], 0; chi_max=chi_max, timing=debug, method=method)
 
-            M[p+1] = ncon([I,Z[p+1]], [[-1,1],[1,-2,-3]])
-            Mb[p+1] = ncon([Ib,Zb[p+1]], [[-1,1],[1,-2,-3]])
+            M[p+1] = I*Z[p+1]
+            Mb[p+1] = Ib*Zb[p+1]
 
             # Construct L[p+1]
-            L[p+1] = ncon([L[p], W[p], Yb[p], Y[p]], [[3,1,5],[3,-1,2,4],[1,2,-2],[5,4,-3]])
+            L[p+1] = Yb[p]*L[p]*W[p]*Y[p]
 
             for i = 1:NumNA
-                LNA[i][p+1] = ncon([LNA[i][p], MNb[i][p], Y[p]], [[1,2],[1,3,-1],[2,3,-2]])
-                LNAb[i][p+1] = ncon([LNAb[i][p], Yb[p], MN[i][p]], [[1,2],[1,3,-1],[2,3,-2]])
+                LNA[i][p+1] = LNA[i][p]*MNb[i][p]*Y[p]
+                LNAb[i][p+1] = LNAb[i][p]*MN[i][p]*Yb[p]
             end
         
             ##### display energy
             if dispon == 2
-                fprintln("Sweep: $k of $numsweeps, Loc: $p,Energy: $(@sprintf("%.3f",Ekeep[end]))")
+                fprintln("Sweep: $k of $numsweeps, Loc: $p, chi: $chi_max, Energy: $(fmtcpx(Ekeep[end]))")
             end
             
         end
@@ -416,21 +431,21 @@ function doDMRG_bb(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
             end
 
             # Move the pointer one site to the left, and right-normalize the matrices at the currenter pointer
-            Z[p], Zb[p], I, Ib = right_decomp(M[p], Mb[p]; chi_max=chi_max, timing=debug, method=method)
-            M[p-1] = ncon([Y[p-1],I], [[-1,-2,1],[1,-3]])
-            Mb[p-1] = ncon([Yb[p-1],Ib], [[-1,-2,1],[1,-3]])
+            Z[p], Zb[p], I, Ib = decomp(M[p], Mb[p], 1; chi_max=chi_max, timing=debug, method=method)
+            M[p-1] = Y[p-1]*I
+            Mb[p-1] = Yb[p-1]*Ib
 
             # Construct R[p-1]. The indices of R is: left'' - left - left'
-            R[p-1] = ncon([R[p], W[p], Zb[p], Z[p]],[[3,1,5],[-1,3,2,4],[-2,2,1],[-3,4,5]])
+            R[p-1] = Zb[p]*R[p]*W[p]*Z[p]
 
             for i = 1:NumNA
-                RNA[i][p-1] = ncon([RNA[i][p], MNb[i][p], Z[p]], [[1,2],[-1,3,1],[-2,3,2]])
-                RNAb[i][p-1] = ncon([RNAb[i][p], Zb[p], MN[i][p]], [[1,2],[-1,3,1],[-2,3,2]])
+                RNA[i][p-1] = RNA[i][p]*MNb[i][p]*Z[p]
+                RNAb[i][p-1] = RNAb[i][p]*Zb[p]*MN[i][p]
             end
         
             ##### display energy
             if dispon == 2
-                fprintln("Sweep: $k of $numsweeps, Loc: $p, Energy: $(@sprintf("%.3f",Ekeep[end]))")
+                fprintln("Sweep: $k of $numsweeps, Loc: $p, chi: $chi_max, Energy: $(fmtcpx(Ekeep[end]))")
             end
 
         end
@@ -440,12 +455,32 @@ function doDMRG_bb(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
         Zb[1] = Mb[1]
         
         # Calculate <H^2>-<H>^2
-        RR = Complex.ones((1,1,1,1))
+        RR = ITensor(1. +0im)
+        newlinks = Vector{Index}(undef, Nsites-1)
         for p = Nsites:-1:1
-            RR = ncon([Zb[p],RR,W[p],W[p],Z[p]], [[-3,2,1],[5,3,1,6],[-1,5,2,4],[-2,3,4,7],[-4,7,6]])
+            Wpinds = inds(W[p])
+            physind = Wpinds[2]
+            newphys = Index(dim(physind), tags(physind))
+            Wlow = W[p]*delta(physind',newphys) # Lower W has indices (physind, newphys, links), contracts with M
+            Wupp = W[p]*delta(physind,newphys) # Upper W has indices (newphys, physind', links), contracts with Mb
+            # Renew the left link
+            if p > 1
+                leftlink = Wpinds[3]
+                newlinks[p-1] = Index(dim(leftlink), join(tags(leftlink), ",")*",upp")
+                Wupp *= delta(leftlink, newlinks[p-1])
+            end
+            # Renew the right link
+            if p < Nsites
+                Wupp *= delta(Wpinds[end], newlinks[p])
+            end
+
+            RR = Zb[p] * RR * Wupp * Wlow * Z[p]
+            if debug
+                fprintln("At step $p, inds(RR) = $(inds(RR))")
+            end
         end
 
-        Hdif = abs(RR[1]-Ekeep[end]^2)
+        Hdif = abs(RR[] - Ekeep[end]^2)
         push!(Hdifs, Hdif)
 
         if dispon >= 1
@@ -454,7 +489,7 @@ function doDMRG_bb(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
 
         cut = max(tol, eps(Float64)) * 10
         # Early termination if converged
-        if abs(std(Ekeep[end-2*Nsites:end])) < cut && Hdif < cut:
+        if abs(std(Ekeep[end-(2*Nsites-3):end])) < cut && Hdif < cut
             fprintln("Converged")
             k = numsweeps+1
         end
@@ -464,9 +499,9 @@ function doDMRG_bb(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
     end
 
     # Clean up memory
-    foreach(finalize, [LNA, RNA, LNAb, RNAb, Namp, MN, MNb, L, R, RR])
+    foreach(finalize, [LNA, RNA, LNAb, RNAb, Namp, MN, MNb, L, R])
     GC.gc()
             
-    return Ekeep, Hdifs, Y, Yb, Z, Zb
+    return Ekeep, Hdifs, MPS(Y), MPS(Yb), MPS(Z), MPS(Zb)
 
 end

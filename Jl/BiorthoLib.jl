@@ -1,29 +1,25 @@
 using Dates
-using TensorOperations
+using ITensors
+import Arpack:eigs as arpack_eigs
 include("Config.jl")
 
-function transposet(tensor)
-    return permutedims(tensor, length(size(tensor)):-1:1)
-end
-
-function left_decomp(M, Mb; chi_max = 0, timing = false, method::DM_Method)
+function decomp(M::ITensor, Mb::ITensor, link::Index; chi_max = 0, timing = false, method::DM_Method = LR)
     if method == BB
-        return left_decomp_biortho(M, Mb; chi_max=chi_max, timing=timing)
+        return decomp_biortho(M, Mb, link; chi_max=chi_max, timing=timing)
     elseif method == LR
-        return left_decomp_lrrho(M, Mb; chi_max=chi_max, timing=timing)
+        return decomp_lrrho(M, Mb, link; chi_max=chi_max, timing=timing)
+    else
+        throw(ArgumentError("Unrecognized DM_Method = $method."))
     end
 end
-    
-function right_decomp (M, Mb; chi_max = 0, timing = false, method::DM_Method)
 
-    M = transposet(M)
-    Mb = transposet(Mb)
-    Y, Yb, I, Ib = left_decomp(M, Mb; chi_max=chi_max, timing=timing, method=method)
-    return transposet(Y), transposet(Yb), transposet(I), transposet(Ib)
-
+function decomp(M::ITensor, Mb::ITensor, linkind::Int; chi_max = 0, timing = false, method::DM_Method = LR)
+    return decomp(M, Mb, inds(M)[linkind>0 ? linkind : end-linkind]; chi_max=chi_max, timing=timing, method=method)
 end
 
 """
+decomp_biortho(M::ITensor, Mb::ITensor, link::Index, linkb::Index; chi_max = 0, unitarize = false, timing = false)
+
 Given two MPS blocks M (left - physical - right) and Mb (left' - physical' - right')
 Returns Y (left, physical, temp), Yb (left' - physical' - temp'), eta (temp - right), etab (temp' - right')
 such that Y contracted with Yb on left and physical indices yields identity.
@@ -32,25 +28,15 @@ The process is done by the two-step partial diagonalization of the density matri
 as described in 2401.15000. This brings M and Mb into "left-canonical" form, which eta and etab are to be multiplied onto 
 the site on the right.
 """
-
-function ireshape(x, dims...)
-    if length(dims) == 1 && (isa(dims[1], Array) || isa(dims[1], Tuple))
-        dims = dims[1]
-    end
-    inferred_dim = div(length(x), prod(filter(!=(-1), dims)))
-    final_dims = map(d -> d == -1 ? inferred_dim : d, dims)
-    return reshape(x, final_dims)
-end
-
-function left_decomp_biortho(M, Mb; chi_max = 0, unitarize = false, timing = false)
+function decomp_biortho(M::ITensor, Mb::ITensor, link::Index; chi_max = 0, unitarize = false, timing = false)
 
     if timing
         t1 = now()
     end
 
-    function timestamp(msg, t1)
+    function timestamp(msg)
         if timing
-            fprintln("Timestamp $(msg): $(Dates.value(now()-t1))s")
+            fprintln("Timestamp :: $(Dates.value(now()-t1)/1000)s :: $(msg)")
         end
     end
 
@@ -59,17 +45,9 @@ function left_decomp_biortho(M, Mb; chi_max = 0, unitarize = false, timing = fal
     if size(M) != size(Mb)
         throw(ArgumentError("The shape of M and Mb must be identical!"))
     end
-    
-    # Deal with the case where M is the lefter-most tensor
-    leftmost = false
-    if length(size(M)) == 2
-        M = reshape(M, (1,size(M)...))
-        Mb = reshape(Mb, (1,size(M)...))
-        leftmost = true
-    end
 
     # Construct Density Matrix
-    dL, dS, _ = size(M)
+    dL, dS = size(M)[1:2]
     rho = reshape(ncon([M, Mb], [[-1,-2,1],[-3,-4,1]]), (dL*dS, dL*dS))
 
     timestamp("Rho Construction")
@@ -99,7 +77,7 @@ function left_decomp_biortho(M, Mb; chi_max = 0, unitarize = false, timing = fal
         Ysb = conj.(Ss)
         if length(D) > 0
             X = sLA.solve_sylvester(A, -C, D)
-            Ysb += conj.(Sd) * X.'
+            Ysb += conj.(Sd) * transpose(X)
         end
 
         timestamp("Roth Removal")
@@ -130,15 +108,17 @@ function left_decomp_biortho(M, Mb; chi_max = 0, unitarize = false, timing = fal
 end
 
 # Make v1@v2=1 and norm(v1)=norm(v2)
-function unitize(v1, v2; return_ratios = false):
+function unitize(v1, v2; return_ratios = false)
 
-    ipsr = 1/sqrt(dot(v1, v2))
+    # Notice that v1 is already the left eigenvector, so it NEED NOT BE CONJUGATED
+    # DO NOT USE dot, because that would conjugate the first vector.
+    ipsr = 1/sqrt(plaindot(v1,v2)) 
     ratio = sqrt(norm(v1)/norm(v2))
 
     if return_ratios
         return v1.*(ipsr/ratio), v2.*(ipsr*ratio), ratio/ipsr, 1/(ipsr*ratio)
     else
-        return v1.*(ipsr/rati)o, v2.*(ipsr*ratio)
+        return v1.*(ipsr/ratio), v2.*(ipsr*ratio)
     end
 
 end
@@ -149,8 +129,8 @@ function GSbiortho(Y, Yb)
     for i = 1:size(Y)[2]
         # Orthogonalize the i-th vector with all those before it
         for j = 1:i-1
-            Yb[:,i] -= Yb[:,j] .* (dot(Yb[:,i],Y[:,j])/dot(Yb[:,j],Y[:,j]))
-            Y[:,i] -= Y[:,j] .* (dot(Yb[:,j],Y[:,i])/dot(Yb[:,j],Y[:,j]))
+            Yb[:,i] -= Yb[:,j] .* (plaindot(Yb[:,i],Y[:,j])/plaindot(Yb[:,j],Y[:,j]))
+            Y[:,i] -= Y[:,j] .* (plaindot(Yb[:,j],Y[:,i])/plaindot(Yb[:,j],Y[:,j]))
         end
         # Normalize the i-th vector
         Yb[:,i], Y[:,i] = unitize(Yb[:,i], Y[:,i])
@@ -171,7 +151,7 @@ function nullspace(M)
 end
 
 # Returns A, C, D, Ss, Sd
-function schur_sorted(M, chi; doprint = false):
+function schur_sorted(M, chi; doprint = false)
 
     if doprint
         fprint("Schur sorted called")
@@ -210,11 +190,11 @@ function schur_sorted(M, chi; doprint = false):
         c = T[r, r+1]
         x = c/(a-b)
         y = sqrt(1+abs(x)^2)
-        Q = [-conj(x), 1; 1, x]./y
+        Q = [-conj(x) 1; 1 x]./y
         Qd = Q'
-        T[:,r:r+1] = T[:,r:r+1] @ Qd
-        Z[r:r+1,:] = Q @ Z[r:r+1,:]
-        Z[:,r:r+1] = Z[:,r:r+1] @ Qd
+        T[:,r:r+1] = T[:,r:r+1] * Qd
+        Z[r:r+1,:] = Q * Z[r:r+1,:]
+        Z[:,r:r+1] = Z[:,r:r+1] * Qd
     end
     
     # Iteratively, find the largest eigenvalue in the lower half and the smallest eigenvalue in the upper half,
@@ -234,7 +214,7 @@ function schur_sorted(M, chi; doprint = false):
                 break
             else
                 if pR <= chi
-                    throw(RuntimeError("Unpaired out-of-order eigenvalue!"))
+                    throw(ErrorException("Unpaired out-of-order eigenvalue!"))
                 end
                 pR -= 1
                 continue
@@ -272,9 +252,9 @@ eta (left - temp)
 etab (left' - temp')
 """
 
-function doeig(H, v0; sigma=0, tol=0, ncv0=50, use_sparse=true)
+function doeig(Ham, v0; sigma=0, tol=0, ncv0=50, use_sparse=true)
 
-    dim = size(H)[1]
+    Hdim = size(Ham)[1]
 
     ncv = ncv0
 
@@ -287,18 +267,19 @@ function doeig(H, v0; sigma=0, tol=0, ncv0=50, use_sparse=true)
         while true
 
             try
-                eigresult = eigs(Ham; nev=1, which=:LM, sigma=sigma, tol=tol, v0=v0)
-                println("Converged eigenvalue: ", eigresult.values[1])
-                return eigresult.values[1], eigresult.vectors[:,1]
+                fprintln("Trying sprase diagonalization with ncv = $ncv")
+                eigvalues, eigvectors = arpack_eigs(Ham; nev=1, which=:LM, sigma=sigma, tol=tol, v0=v0, ncv=ncv)
+                fprintln("Converged eigenvalue: ", eigvalues[1])
+                return eigvalues[1], eigvectors[:,1]
             catch e
                 if isa(e, ErrorException) && occursin("No convergence", e.msg)
                     # Handle non-convergence (e.g., adjust parameters or retry)
                     fprintln("Warning: Eigenvalue computation did not converge at ncv = $ncv.")
-                    if ncv < dim/2
+                    if ncv < Hdim/2
                         ncv += ncv0
                         fprintln("Redoing with ncv = $ncv.")
                     else
-                        throw(RuntimeError("Maximal ncv bar reached."))
+                        throw(ErrorException("Maximal ncv bar reached."))
                     end
                 else
                     rethrow(e)  # Rethrow if it's a different error
@@ -309,46 +290,54 @@ function doeig(H, v0; sigma=0, tol=0, ncv0=50, use_sparse=true)
 
     catch e
 
-        fprintln(e.msg)
+        if hasfield(typeof(e), :msg)
+            fprintln(e.msg)
+        else
+            fprintln(e)
+        end
         fprintln("Switching to dense algorithm.")
 
         w, v = eigen(Ham)
-        arg = argmin(abs.(w-sigma))
+        arg = argmin(abs.(w.-sigma))
         return w[arg], v[:,arg]
 
     end
 
 end
 
-function eigLR(L, R, M, A, Ab; sigma = 0, use_sparse = true, tol = 0, normalize_against = [], ncv0 = 50, timing = false)
+function eigLR(L::ITensor, R::ITensor, M::ITensor, A::ITensor, Ab::ITensor; sigma::ComplexF64 = ComplexF64(0), use_sparse = true, tol = 0, normalize_against = [], ncv0 = 50, timing = false)
 
     if timing
         t1 = now()
     end
 
-    function timestamp(msg, t1)
+    function timestamp(msg)
         if timing
-            fprintln("Timestamp $(msg): $(Dates.value(now()-t1))s")
+            fprintln("Timestamp :: $(Dates.value(now()-t1)/1000)s :: $(msg)")
         end
     end
 
-    Ham = ncon([L,R,M],[[1,-1,-4],[2,-3,-6],[1,2,-2,-5]])
-    bond_dims = size(Ham)[1:3]
-    timestamp("In eigLR, bond dimensions: $bond_dims")
-    dim = prod(bond_dims)
-    Ham = reshape(Ham, (dim,dim))
-    ncv = min(ncv, dim)
+    Ham = L*M*R
+    bonds = [i for i in inds(Ham) if plev(i)==0]
+    comb = combiner(bonds...)
+    mind = inds(comb)[1]
+    oind = inds(comb)[2:end]
+    Hdim = dim(mind)
+    Ham = Ham*comb*comb'
+    timestamp("In eigLR, bond dimensions: $bonds")
+    ncv0 = min(ncv0, Hdim)
 
     for norm_tuple in normalize_against
         Ln,Rn,Mnb,Lnb,Rnb,Mn,amp = norm_tuple
-        Hb = ncon([Ln,Rn,Mnb],[[1,-1],[2,-3],[1,-2,2]])
-        H = ncon([Lnb,Rnb,Mn],[[-1,1],[-3,2],[1,-2,2]])
-        Ham += amp .* ireshape(H, (1,-1))*ireshape(Hb,(-1,1))
+        Ham += amp * vec(Array(Lnb*Mn*Rnb, oind'...)) * transpose(vec(Array(Ln*Mnb*Rn, oind...)))
     end
 
-    w, v = doeig(Ham, vec(A);sigma=sigma, tol=tol, ncv0=ncv0, use_sparse=use_sparse)
-    w1, vL = sparse.linalg.eigs(Ham', vec(Ab); sigma=w, tol=tol, ncv0=ncv0, use_sparse=use_sparse)
-    w1 = conj(w1)
+    Ham = Array(Ham, mind', mind)
+    w, v = doeig(Ham, vec(Array(A, oind...));sigma=sigma, tol=tol, ncv0=ncv0, use_sparse=use_sparse)
+    w1, vL = doeig(transpose(Ham), vec(Array(Ab, oind'...)); sigma=w, tol=tol, ncv0=ncv0, use_sparse=use_sparse)
+    # Right here, the second diagonalization is to find the right eigenvector of HT.
+    # The eigenvalue of H^T should be the same as the eigenvalue of H.
+    # Ab should contain the left eigenvector, which is the transpose of the right eigenvector of H^T.
 
     if abs(w-w1) > max(10*tol, 1e-14)
         fprintln("L-R Eigenvalue error $(abs(w-w1)) / tol $tol...")
@@ -361,44 +350,62 @@ function eigLR(L, R, M, A, Ab; sigma = 0, use_sparse = true, tol = 0, normalize_
         timestamp("Done.")
     end
 
-    return (w+w1)/2, reshape(v, size(A)), reshape(vL, size(Ab))
+    return (w+w1)/2, ITensor(v, mind)*comb, ITensor(vL, mind')*comb'
 
-function left_decomp_lrrho(M, Mb; chi_max = 0, timing = false)
+end
+
+"""
+
+
+Given tensors M(link, others) and Mb(linkb, others'), 
+
+"""
+function decomp_lrrho(M::ITensor, Mb::ITensor, link::Index; chi_max = 0, timing = false)
 
     if timing
         t1 = now()
         fprintln("In decomp_lrrho")
     end
 
-    if length(size(M)) == 2
-        M = reshape(M, (1,size(M)...))
+    idm = inds(M)
+
+    if !(link in idm)
+        throw(ArgumentError("link !in inds(M)!\ninds(M)=$(idm), link=$link"))
     end
 
-    if size(M) != size(Mb)
-        throw(ArgumentError("The shape of M and Mb must be identical!"))
+    if idm' != inds(Mb)
+        throw(ArgumentError("inds(M)' != inds(Mb)! inds(M) = $idm, inds(Mb) = $(inds(Mb))"))
     end
-        
-    dL, dS, dR = size(M)
-    M = ireshape(M, (dL*dS,-1))
-    Mb = ireshape(Mb, (dL*dS,-1))
-    rho = (M*M' + conj.(Mb)@Mb.T)./2
+    
+    # Combine the non-link indices into one index
+    Mcomb = combiner([i for i in idm if i != link])
+    Mci = inds(Mcomb)[1]
+    msize = dim(Mci)
+    M *= Mcomb
+    Mb *= Mcomb'
+    mind = Index(msize, "matind")
+
+    # Construct density matrix as |psi_R><psi_R|+|psi_L><psi_L|. A factor 1/2 is neglected since we only need the eigenvectors.
+    rho = Array((M*delta(Mci,mind))*(conj(M)*delta(Mci,mind')) + (Mb*delta(Mci',mind'))*(conj(Mb)*delta(Mci',mind)), mind', mind)
     S, U = eigen(rho)
     if 0 < chi_max < length(S)
-        args = permsort(-abs.(S))[1:chi_max]
-        S = S[args]
+        args = sortperm(-abs.(S))[1:chi_max]
+        # S = S[args]
         U = U[:,args]
     end
 
-    I = U' * M
-    Ib = U.T * Mb
+    # Create a new link
+    newlink = Index(size(U)[2], tags(link))
 
-    U = ireshape(U, (dL,dS,-1))
+    U = ITensor(U, Mci, newlink)
+    I = conj(U)*M
+    Ib = U'*Mb
 
     if timing
-        fprintln("lrrho cost $(Dates.value(time()-t1))s")
+        fprintln("lrrho cost $(Dates.value(now()-t1)/1000)s")
     end
 
-    return U, conj.(U), I, Ib
+    return U*Mcomb, conj(U)'*Mcomb', I, Ib
     
 end
 
