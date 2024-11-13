@@ -186,7 +186,7 @@ end
 
 
 sz = 2
-L = 10
+L = 5
 
 """
 M = np.random.randn(sz,sz,sz) + 1j*np.random.randn(sz,sz,sz)
@@ -213,7 +213,7 @@ Mb = conj(M)'
 diss = sqrt(0.1)
 W = LindbladMPO(getOp(Dict("ZZ"=>1, "Z"=>0.7, "X"=>1.5)), [getOp(Dict("X"=>diss)), getOp(Dict("Y"=>diss)), getOp(Dict("Z"=>diss))], sites; dagger=false)
 
-do_DMRGX_and_save(W, sites, 5, "Test1111Datas"; M=M, Mb=Mb)
+do_DMRGX_and_save(W, sites, 5, "Test1111Datas"; M=M, Mb=Mb, method=BB)
 
 #compare_DMRG_to_ED(W, sites; M=M, Mb=Mb)
 

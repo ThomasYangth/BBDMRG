@@ -1,7 +1,28 @@
 using LinearAlgebra: I
 
-include("Config.jl")
-include("OPlib.jl")
+function MPSonSites(M0::Array{<:Number, 3}, sites::Sites; leftindex::Int=1, rightindex::Int=2)
+    L = length(sites)
+    if L == 1
+        return MPS([ITensor(M0[leftindex,:,rightindex], sites[1])])
+    else
+        links = [Index(thisax, "$i-link-$(i+1)" for i=1:L-1)]
+        ML = ITensor(M0[leftindex,:,:], sites[1], links[1])
+        MR = ITensor(M0[:,:,rightindex], links[end], sites[end])
+        return MPS(vcat([ML], [ITensor(M0, links[i-1], sites[i], links[i]) for i = 2:L-1], [MR]))
+    end
+end
+
+function MPOonSites(M0::Array{<:Number, 4}, sites::Sites; leftindex::Int=1, rightindex::Int=2)
+    L = length(sites)
+    if L == 1
+        return MPO([ITensor(M0[:,:,leftindex,rightindex], sites[1]', sites[1])])
+    else
+        links = [Index(thisax[], "$i-link-$(i+1)") for i=1:L-1]
+        ML = ITensor(M0[:,:,leftindex,:], sites[1]', sites[1], links[1])
+        MR = ITensor(M0[:,:,:,rightindex], sites[end]', sites[end], links[end])
+        return MPO(vcat([ML], [ITensor(M0, sites[i]', sites[i], links[i-1], links[i]) for i = 2:L-1], [MR]))
+    end
+end
 
 function OpSumMPS(op::Operator, sites::Sites)
 
@@ -57,14 +78,7 @@ function OpSumMPS(op::Operator, sites::Sites)
         end
     end
 
-    if L == 1
-        return MPS([ITensor(M0[1,:,2], sites[1])])
-    else
-        links = [Index(thisax, "$i-link-$(i+1)" for i=1:L-1)]
-        ML = ITensor(M0[1,:,:], sites[1], links[1])
-        MR = ITensor(M0[:,:,2], links[end], sites[end])
-        return MPS(vcat([ML], [ITensor(M0, links[i-1], sites[i], links[i]) for i = 2:L-1], [MR]))
-    end
+    return MPSonSites(M0, sites; leftindex=1, rightindex=2)
 
 end
 
@@ -81,16 +95,7 @@ function sizeMPO(sites::Sites)
     M0[:,:, 2,2] = Matrix(I, 4, 4) # Final state to itself
     M0[:,:, 1,2] = Diagonal([0,1,1,1]) # Operator size
 
-    L = length(sites)
-
-    if L == 1
-        return MPO([ITensor(M0[:,:,1,2], sites[1]', sites[1])])
-    else
-        links = [Index(thisax, "$i-link-$(i+1)" for i=1:L-1)]
-        ML = ITensor(M0[:,:,1,:], sites[1]', sites[1], links[1])
-        MR = ITensor(M0[:,:,:,2], sites[end]', sites[end], links[end])
-        return MPO(vcat([ML], [ITensor(M0, sites[i]', sites[i], links[i-1], links[i]) for i = 2:L-1], [MR]))
-    end
+    return MPOonSites(M0, sites; leftindex=1, rightindex=2)
 
 end
 
@@ -159,15 +164,8 @@ function LindbladMPO(H, Lis, sites; dagger = false)
             M0[:,:, dim+j-1,dim+j] = mat[j] # Within transition axes   
         end
     end
-    
-    if L == 1
-        return MPO([ITensor(M0[:,:,1,2], sites[1]', sites[1])])
-    else
-        links = [Index(thisax[], "$i-link-$(i+1)") for i=1:L-1]
-        ML = ITensor(M0[:,:,1,:], sites[1]', sites[1], links[1])
-        MR = ITensor(M0[:,:,:,2], sites[end]', sites[end], links[end])
-        return MPO(vcat([ML], [ITensor(M0, sites[i]', sites[i], links[i-1], links[i]) for i = 2:L-1], [MR]))
-    end
+
+    return MPOonSites(M0, sites; leftindex=1, rightindex=2)
 
 end
 
@@ -191,11 +189,49 @@ function MPO_to_Matrix(W)
     Winds = [i for i in inds(H) if plev(i)==0]
     comb = combiner(Winds...)
     mati = inds(comb)[1]
-    return Array(H*comb*comb', mati', mati)
+    return Array(H*comb*comb', mati', mati), comb
 end
 
 function printInds(W)
     for (p,A) in enumerate(W)
         fprintln("Pos $p, indices $(inds(A))")
     end
+end
+
+"""
+    find_sites_and_links(M::MPS)
+
+Given a MPS, returns the site indices and link indices.
+
+# Arguments
+- `M::MPS`: The MPS to be analyzed.
+
+# Returns
+- `sites::Vector{Index{Int}}`: The site indices.
+- `links::Vector{Index{Int}}`: The link indices.
+"""
+function find_sites_and_links(M::MPS)
+
+    Nsites = length(M)
+
+    links = Vector{Index{Int}}(undef, Nsites-1)
+    sites = Vector{Index{Int}}(undef, Nsites)
+    # Obtain the link indices
+    for i = 1:Nsites
+        if i < Nsites
+            common_inds = intersect(inds(M[i]), inds(M[i+1]))
+            if length(common_inds) != 1
+                throw(ArgumentError("MPS tensors must have exactly one common index!\nInstead, inds(M[$i])=$(inds(M[i])), inds(M[$(i+1)])=$(inds(M[i+1]))."))
+            end
+            links[i] = common_inds[1]
+        end
+        i_site = setdiff(inds(M[i]), links)
+        if length(i_site) != 1
+            throw(ArgumentError("MPS tensors must have exactly one site index!\nInstead, inds(M[$i])=$(inds(M[i]))."))
+        end
+        sites[i] = i_site[1]
+    end
+
+    return sites, links
+
 end
