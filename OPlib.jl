@@ -1,3 +1,5 @@
+export Term, Operator, getOp, LindbladMPO, LindbladMPO_W
+
 const Term = NamedTuple{(:coef, :inds), Tuple{ComplexF64, Vector{Int}}}
 const Operator = Vector{Term}
 

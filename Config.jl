@@ -25,6 +25,7 @@ function plaindot(v1, v2)
     return transpose(v1)*v2
 end
 
-@enum DM_Method BB LR
+export DM_Method, Sites, BB, LR
 
+@enum DM_Method BB LR
 const Sites = Vector{Index{Int64}}

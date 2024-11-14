@@ -17,7 +17,7 @@ function MPOonSites(M0::Array{<:Number, 4}, sites::Sites; leftindex::Int=1, righ
     if L == 1
         return MPO([ITensor(M0[:,:,leftindex,rightindex], sites[1]', sites[1])])
     else
-        links = [Index(thisax[], "$i-link-$(i+1)") for i=1:L-1]
+        links = [Index(size(M0)[3], "$i-link-$(i+1)") for i=1:L-1]
         ML = ITensor(M0[:,:,leftindex,:], sites[1]', sites[1], links[1])
         MR = ITensor(M0[:,:,:,rightindex], sites[end]', sites[end], links[end])
         return MPO(vcat([ML], [ITensor(M0, sites[i]', sites[i], links[i-1], links[i]) for i = 2:L-1], [MR]))
@@ -100,7 +100,7 @@ function sizeMPO(sites::Sites)
 end
 
 # Realized in a similar way as OpSumMPS
-function LindbladMPO(H, Lis, sites; dagger = false)
+function LindbladMPO_W(H, Lis; dagger = false)
 
     thisax = Ref(3) # Current axes
     dims = Ref([]) # dims[i]:dims[i+1] are the axes for operator i
@@ -165,7 +165,13 @@ function LindbladMPO(H, Lis, sites; dagger = false)
         end
     end
 
-    return MPOonSites(M0, sites; leftindex=1, rightindex=2)
+    return M0
+
+end
+
+function LindbladMPO(H, Lis, sites; dagger = false)
+
+    return MPOonSites(LindbladMPO_W(H, Lis; dagger=dagger), sites; leftindex=1, rightindex=2)
 
 end
 
@@ -210,22 +216,25 @@ Given a MPS, returns the site indices and link indices.
 - `sites::Vector{Index{Int}}`: The site indices.
 - `links::Vector{Index{Int}}`: The link indices.
 """
-function find_sites_and_links(M::MPS)
+function find_sites_and_links(M::Union{MPS,MPO})
 
     Nsites = length(M)
 
     links = Vector{Index{Int}}(undef, Nsites-1)
     sites = Vector{Index{Int}}(undef, Nsites)
+
+    Minds = [[id for id in inds(M[i]) if plev(id)==0] for i in 1:Nsites]
+
     # Obtain the link indices
     for i = 1:Nsites
         if i < Nsites
-            common_inds = intersect(inds(M[i]), inds(M[i+1]))
+            common_inds = intersect(Minds[i], Minds[i+1])
             if length(common_inds) != 1
                 throw(ArgumentError("MPS tensors must have exactly one common index!\nInstead, inds(M[$i])=$(inds(M[i])), inds(M[$(i+1)])=$(inds(M[i+1]))."))
             end
             links[i] = common_inds[1]
         end
-        i_site = setdiff(inds(M[i]), links)
+        i_site = setdiff(Minds[i], links)
         if length(i_site) != 1
             throw(ArgumentError("MPS tensors must have exactly one site index!\nInstead, inds(M[$i])=$(inds(M[i]))."))
         end

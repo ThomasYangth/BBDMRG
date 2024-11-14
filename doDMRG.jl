@@ -14,6 +14,8 @@ using JLD2 # For saving and processing array
 
 using Printf
 
+export doDMRG_excited, doDMRG_excited_IncL, doDMRG_IncChi, doDMRG
+
 """
     doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
     k::Int=1, expected_gap::Float64=1, tol::Float64 = 1e-15,
@@ -141,12 +143,12 @@ function doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
 
         if thisk == length(Ms) + 1
 
-            sigma = ComplexF64(0)
+            sigma = shift_eps*im
             #sigma = length(Es) > 0 ? Es[end] : 0
 
             if method == BB
 
-                Ekeep, Hdifs, Y, Yb, _, _ = doDMRG_IncChi(M, Mb, W, chi_max;
+                Ekeep, Hdifs, Y, Yb = doDMRG_IncChi(M, Mb, W, chi_max;
                     normalize_against = [(Ms[i],Mbs[i],-expected_gap*(thisk-i)) for i = 1:thisk-1],
                     sigma=sigma, vt_amp=vt_amp, tol_end=tol, chi_start=chi_start,
                     numsweeps=numsweeps, dispon=dispon, debug=debug, method=method)
@@ -166,7 +168,7 @@ function doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
 
             elseif method == LR
 
-                Ekeep, Hdifs, Y, _,_,_ = doDMRG_IncChi(M, Mb, W, chi_max;
+                Ekeep, Hdifs, Y, _ = doDMRG_IncChi(M, Mb, W, chi_max;
                     normalize_against = [(Ms[i],Mbs[i],-expected_gap*(thisk-i)) for i = 1:thisk-1],
                     sigma=sigma, vt_amp=vt_amp, tol_end=tol, chi_start=chi_start,
                     numsweeps=numsweeps, dispon=dispon, debug=debug, method=method)
@@ -198,11 +200,11 @@ function doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
         if thisk == length(Mbs) + 1 && method == LR
 
             # Right-normalize the M solution
-            _,_,_,_, Z, Zb = doDMRG(Ms[thisk], conj.(Ms[thisk]), W, chi_max; numsweeps=0, updateon=false)
+            _,_, Z, Zb = doDMRG(Ms[thisk], conj.(Ms[thisk]), W, chi_max; numsweeps=0, updateon=false)
 
-            Ekeep, Hdifs, Y, _,_,_ = doDMRG_IncChi(Z, Zb, W, chi_max;
+            Ekeep, Hdifs, Y, _ = doDMRG_IncChi(Z, Zb, W, chi_max;
                     normalize_against = [(Ms[i],Mbs[i],-expected_gap*(thisk-i)) for i = 1:thisk-1],
-                    sigma = Es[end], vt_amp=vt_amp, tol_end=tol, chi_start=chi_start,
+                    sigma = shift_eps*im, vt_amp=vt_amp, tol_end=tol, chi_start=chi_start,
                     numsweeps=numsweeps, dispon=dispon, debug=debug, method=method)
 
             if Hdifs[end] < 1e-3
@@ -231,9 +233,15 @@ function doDMRG_excited(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
 end
 
 function doDMRG_excited_IncL(W0::Array{<:Number, 4}, chi_max::Int, L0::Int, doubles::Int;
-    k::Int=1, expected_gap::Float64=1, tol::Float64 = 1e-15,
+    k::Int=1, expected_gap::Float64=1., tol::Float64 = 1e-15,
     numsweeps::Int = 10, dispon::Int = 2, debug::Bool = false, method::DM_Method = LR,
     cut::Float64 = 1e-8, stop_if_not_converge::Bool = true, savename = nothing, override::Bool = false)
+
+    if isnothing(savename)
+        savename = Dates.format(now(), "MMddyy-HHMMSS")
+    end
+
+    filename = "$savename.jld2"
 
     # Ms[i,j] will be the j-th excited state for system size L0*2^i.
     Ms = Array{MPS, 2}(undef, k, doubles)
@@ -241,25 +249,30 @@ function doDMRG_excited_IncL(W0::Array{<:Number, 4}, chi_max::Int, L0::Int, doub
     Es = Array{ComplexF64, 1}()
 
     # At length L0, do a sparse diagonalization for the full matrix, to get the initial states.
-    initSites = [Index(dims(W0)[1], "Site $i") for i = 1:L0]
+    sites = [Index(size(W0)[1], "Site $i") for i = 1:L0*(2^doubles)]
+    initSites = sites[1:L0]
     W_L0 = MPOonSites(W0, initSites; leftindex=1, rightindex=2)
     W_L0_mat, comb = MPO_to_Matrix(W_L0)
     Mci = inds(comb)[1]
-    wR, vR = doeig(W_L0_mat, ComplexF64[randn() + im * randn() for _ in 1:L0]; k=k)
-    wL, vL = doeig(transpose(W_L0_mat), ComplexF64[randn() + im * randn() for _ in 1:L0]; k=k)
-    if !isapprox(wR, wL; rtol=1e-6)
+    wR, vR = doeig(W_L0_mat, ComplexF64[randn() + im * randn() for _ in 1:L0]; k=k, use_sparse=false)
+    wL, vL = doeig(transpose(W_L0_mat), ComplexF64[randn() + im * randn() for _ in 1:L0]; k=k, use_sparse=false)
+
+    fprintln("Found right eigenvalues: ", wR)
+    fprintln("Found left eigenvalues: ", wL)
+
+    if !isapprox(wR, wL; atol=1e-6)
         throw(ErrorException("Eigenvalues of W_L0 are not symmetric!"))
     end
 
     # Double the states vR and vL to serve as initial guesses for the system size 2*L0.
     for i = 1:k
 
-        Y, Yb = decomp(ITensor(vR[:,i], Mci)*comb, ITensor(vL[:,i], Mci')*comb', initSites; chi_max=chi_max, timing=debug, method=method)
+        Y, Yb = decomp(ITensor(vR[:,i], Mci)*comb, ITensor(vL[:,i], Mci')*comb', initSites; chi_max=chi_max, timing=debug, method=method, linknames=["$j-link-$(j+1)" for j=1:L0-1])
 
-        initSites2 = [Index(dims(W0)[1], "Site $i") for i = L0+1:2*L0]
+        initSites2 = sites[L0+1:2*L0]
         comb2 = combiner(initSites2...)
         Mci2 = inds(comb2)[1]
-        Z, Zb = decomp(ITensor(vR[:,i], Mci2)*comb2, ITensor(vL[:,i], Mci2')*comb2', initSites2[end:-1:1]; chi_max=chi_max, timing=debug, method=method)
+        Z, Zb = decomp(ITensor(vR[:,i], Mci2)*comb2, ITensor(vL[:,i], Mci2')*comb2', initSites2[end:-1:1]; chi_max=chi_max, timing=debug, method=method, linknames=["$(j-1)-link-$j" for j=2*L0:-1:L0+2])
     
         M = ITensor[]
         Mb = ITensor[]
@@ -286,192 +299,24 @@ function doDMRG_excited_IncL(W0::Array{<:Number, 4}, chi_max::Int, L0::Int, doub
     end
 
     for j = 1:doubles
-        # At this step, we do system size L_j=2^(j-1)*L0
-        W = MPOonSites(W0, L0*2^(j-1); leftindex=1, rightindex=2)
-        for i = 1:k
-            # We already have Ms[i,j] and Mbs[i,j] as initial guesses
-            Ekeep, Hdifs, Y, Yb ,_,_ = doDMRG(Ms[i,j], Mbs[i,j], W, chi_max;
-                    normalize_against = [(Ms[ip,j],Mbs[ip,j],-expected_gap*(i-ip)) for ip = 1:thisk-1],
-                    sigma = ComplexF64(0), numsweeps=numsweeps, dispon=dispon, debug=debug, method=method)
-        end
-    end
 
+        this_L = L0*(2^j)
+        this_sites = sites[1:this_L]
+        thisW = MPOonSites(W0, this_sites; leftindex=1, rightindex=2)
 
-    chi_start = 30 # 
-    vt_amp = 15
-
-    if isnothing(savename)
-        savename = Dates.format(now(), "MMddyy-HHMMSS")
-    end
-
-    if !isa(W, MPO)
-        W = MPO(W)
-    end
-
-    filename = "$savename.jld2"
-
-    if !override && isfile(filename)
-        fprintln("Loading file $filename")
-        jldopen(filename, "r") do file
-
-            # Read the already converged energies
-            if haskey(file, "Es")
-                Es = file["Es"]
+        for thisk = 1:k
+            # Do DMRG for this size
+            _, _, Ms[thisk,j], Mbs[thisk,j] = doDMRG(Ms[thisk,j], Mbs[thisk,j], thisW, chi_max;
+                    normalize_against = [(Ms[i,j], Mbs[i,j], -expected_gap*(thisk-i)) for i = 1:thisk-1],
+                    sigma = shift_eps*im + 0.1, numsweeps=numsweeps, dispon=dispon, debug=debug, method=method,
+                    stop_if_not_converge=stop_if_not_converge)
+            # Double the MPS for the next initial guess
+            if j < doubles
+                Ms[thisk,j+1], Mbs[thisk,j+1] = doubleMPSSize(Ms[thisk,j], Mbs[thisk,j]; chi_max=chi_max, method=method, timing=debug, newsites=sites[this_L+1:2*this_L])
             end
-
-            # Read the already converged eigenstates
-            k_loop_1 = false
-            for i = 1:k
-                thisM = []
-                for j = 1:L
-                    if !haskey(file, "M$(i)R$(j)")
-                        k_loop_1 = true
-                        break
-                    end
-                    push!(thisM, file["M$(i)R$(j)"])
-                end
-                if k_loop_1
-                    break
-                end
-                push!(Ms, MPS(thisM))
-            end
-
-            k_loop_2 = false
-            for i = 1:k
-                thisM = []
-                for j = 1:L
-                    if !haskey(file, "M$(i)L$(j)")
-                        k_loop_2 = true
-                        break
-                    end
-                    push!(thisM, file["M$(i)L$(j)"])
-                end
-                if k_loop_2
-                    break
-                end
-                push!(Mbs, MPS(thisM))
-            end
-
         end
-    end
-
-    function dosave()
-        jldopen(filename, (!override && isfile(filename)) ? "r+" : "w+") do file
-
-            file["Es"] = Es
-
-            for (i,M) in enumerate(Ms)
-                for (key,mat) in M.asdict("M$(i)R")
-                    if override && !haskey(file, key)
-                        file[key] = mat
-                    end
-                end
-            end
-
-            for (i,M) in enumerate(Mbs)
-                for (key,mat) in M.asdict("M$(i)L")
-                    if override && !haskey(file, key)
-                        file[key] = mat
-                    end
-                end
-            end
-
-        end
-        fprintln("Saved current data: len(Es)=$(length(Es)), len(Ms)=$(length(Ms)), len(Mbs)=$(length(Mbs)).")
-    end
-        
-    for thisk = 1:k
-
-        fprintln("Finding eigenvalue $(thisk)")
-
-        if thisk == length(Ms) + 1
-
-            sigma = ComplexF64(0)
-            #sigma = length(Es) > 0 ? Es[end] : 0
-
-            if method == BB
-
-                Ekeep, Hdifs, Y, Yb, _, _ = doDMRG_IncChi(M, Mb, W, chi_max;
-                    normalize_against = [(Ms[i],Mbs[i],-expected_gap*(thisk-i)) for i = 1:thisk-1],
-                    sigma=sigma, vt_amp=vt_amp, tol_end=tol, chi_start=chi_start,
-                    numsweeps=numsweeps, dispon=dispon, debug=debug, method=method)
-
-                if Hdifs[end] < 1e-3
-                    fprintln("Found eigenvalue $thisk = $(fmtcpx(Ekeep[-1]))")
-                else
-                    fprintln("ERROR: Failed to converge for eigenvalue $thisk: <Delta H^2> = $(fmtf(Hdifs[end]))")
-                    if stop_if_not_converge
-                        throw(ErrorException())
-                    end
-                end
-
-                push!(Es, Ekeep[-1])
-                push!(Ms, Y)
-                push!(Mbs, Yb)
-
-            elseif method == LR
-
-                Ekeep, Hdifs, Y, _,_,_ = doDMRG_IncChi(M, Mb, W, chi_max;
-                    normalize_against = [(Ms[i],Mbs[i],-expected_gap*(thisk-i)) for i = 1:thisk-1],
-                    sigma=sigma, vt_amp=vt_amp, tol_end=tol, chi_start=chi_start,
-                    numsweeps=numsweeps, dispon=dispon, debug=debug, method=method)
-
-                if Hdifs[end] < 1e-3
-                    fprintln("Found eigenvalue $thisk = $(fmtcpx(Ekeep[-1]))")
-                else
-                    fprintln("ERROR: Failed to converge for eigenvalue $thisk: <Delta H^2> = $(fmtf(Hdifs[end]))")
-                    if stop_if_not_converge
-                        throw(ErrorException())
-                    end
-                end
-
-                push!(Es, Ekeep[-1])
-                push!(Ms, Y)
-
-            else
-                throw(ArgumentError("Unrecognized method: $method"))
-            end
-
-            dosave()
-
-        end
-
-        if thisk != length(Ms)
-            throw(ErrorException("Unexpected: thisk = $(thisk), length(Ms) = $(length(Ms))."))
-        end
-
-        if thisk == length(Mbs) + 1 && method == LR
-
-            # Right-normalize the M solution
-            _,_,_,_, Z, Zb = doDMRG(Ms[thisk], conj.(Ms[thisk]), W, chi_max; numsweeps=0, updateon=false)
-
-            Ekeep, Hdifs, Y, _,_,_ = doDMRG_IncChi(Z, Zb, W, chi_max;
-                    normalize_against = [(Ms[i],Mbs[i],-expected_gap*(thisk-i)) for i = 1:thisk-1],
-                    sigma = Es[end], vt_amp=vt_amp, tol_end=tol, chi_start=chi_start,
-                    numsweeps=numsweeps, dispon=dispon, debug=debug, method=method)
-
-            if Hdifs[end] < 1e-3
-                fprintln("Found eigenvalue $thisk = $(fmtcpx(Ekeep[end]))")
-            else
-                fprintln("ERROR: Failed to converge for eigenvalue $thisk: <Delta H^2> = $(fmtf(Hdifs[end]))")
-                if stop_if_not_converge
-                    throw(ErrorException())
-                end
-            end
-
-            push!(Mbs, Y)
-
-        end
-
-        if thisk != length(Mbs)
-            throw(ErrorException("Unexpected: thisk = $(thisk), length(Mbs) = $(length(Mbs))."))
-        end
-
-        dosave()
 
     end
-
-    return Ms, Mbs, Es
 
 end
 
@@ -479,15 +324,15 @@ function doDMRG_IncChi(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
     chi_inc::Int = 10, chi_start::Int = 20, init_sweeps::Int = 5, inc_sweeps::Int = 2,
     tol_start::Float64 = 1e-3, tol_end::Float64 = 1e-6, vt_amp::Int = 3, vt_sweeps::Int = 3,
     numsweeps::Int = 10, dispon::Int = 2, debug = false, method::DM_Method = LR,
-    sigma::ComplexF64 = ComplexF64(0), normalize_against = [])
+    sigma::ComplexF64 = shift_eps*im, normalize_against = [])
 
-    _,_,M,Mb,_,_ = doDMRG(M, Mb, W, chi_start;
+    _,_,M,Mb = doDMRG(M, Mb, W, chi_start;
         tol=tol_start, numsweeps=init_sweeps, dispon=dispon, updateon=true,
         debug=debug, method=method, normalize_against=normalize_against, sigma=sigma)
     
     chi = chi_start + chi_inc
     while chi < chi_max
-        _,_,M,Mb,_,_ = doDMRG(M, Mb, W, chi;
+        _,_,M,Mb = doDMRG(M, Mb, W, chi;
             tol=tol_start, numsweeps=inc_sweeps, dispon=dispon, updateon=true,
             debug=debug, method=method, normalize_against=normalize_against, sigma=sigma)
         chi += chi_inc
@@ -496,7 +341,7 @@ function doDMRG_IncChi(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
     chi = chi_max
     tol = tol_start
     while tol > tol_end
-        _,_,M,Mb,_,_ = doDMRG(M, Mb, W, chi;
+        _,_,M,Mb = doDMRG(M, Mb, W, chi;
             tol=tol, numsweeps=vt_sweeps, dispon=dispon, updateon=true,
             debug=debug, method=method, normalize_against=normalize_against, sigma=sigma)
         tol *= (10.)^(-vt_amp)
@@ -523,9 +368,11 @@ end
 #     'lrrho' for using the density matrix rho=(psiL psiL + psiR psiR)/2
 # """
 function doDMRG(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
-    numsweeps::Int = 10, sigma::ComplexF64 = ComplexF64(0), dispon = 2, updateon = true, debug = false,
-    method::DM_Method = LR, tol::Float64=0., normalize_against = [])
+    numsweeps::Int = 10, sigma::ComplexF64 = shift_eps*im, dispon = 2, updateon = true, debug = false,
+    method::DM_Method = LR, tol::Float64=0., normalize_against = [], stop_if_not_converge::Bool=false)
  
+    converged = false
+
     ##### left-to-right 'warmup', put MPS in right orthogonal form
     # Index of W is: left'' - right'' - physical' - physical
     # Index notation: no prime = ket, one prime = bra, two primes = operator link
@@ -536,27 +383,30 @@ function doDMRG(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
 
     sites, links = find_sites_and_links(M)
 
+    physdim = dim(sites[1])
+    trivSites = Int(floor(log(physdim, chi_max))) # The first and last trivSites need not be sweeped.
+
     # Each element in normalize_against should be a tuple (Mi, Mib, amp)
     # Corresponding to adding a term amp * Mi*Mib to the Hamiltonian
     # For this we record LNA, RNA, LNAb, RNAb
     # LNA[i] corresponds to the product of Mib with the current M at site i
     # Simialr for the other three
     NumNA = length(normalize_against)
-    LNA = ITensor[]
-    RNA = ITensor[]
-    LNAb = ITensor[]
-    RNAb = ITensor[]
-    Namp = ITensor[]
-    MN = ITensor[]
-    MNb = ITensor[]
+    LNA = Vector{ITensor}[]
+    RNA = Vector{ITensor}[]
+    LNAb = Vector{ITensor}[]
+    RNAb = Vector{ITensor}[]
+    Namp = ComplexF64[]
+    MN = MPS[]
+    MNb = MPS[]
 
     unit_itensor = ITensor(ComplexF64(1))
 
     for (i,item) in enumerate(normalize_against)
-        LNA.append(fill(unit_itensor, Nsites))
-        RNA.append(fill(unit_itensor, Nsites))
-        LNAb.append(fill(unit_itensor, Nsites))
-        RNAb.append(fill(unit_itensor, Nsites))
+        push!(LNA, fill(unit_itensor, Nsites))
+        push!(RNA, fill(unit_itensor, Nsites))
+        push!(LNAb, fill(unit_itensor, Nsites))
+        push!(RNAb, fill(unit_itensor, Nsites))
         push!(MN, item[1])
         push!(MNb, item[2])
         push!(Namp, item[3])
@@ -566,12 +416,10 @@ function doDMRG(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
     # R[i] is contracted for sites >= i+1
     L = fill(unit_itensor, Nsites)
     R = fill(unit_itensor, Nsites)
-    Y = fill(unit_itensor, Nsites)
-    Yb = fill(unit_itensor, Nsites)
-    Z = fill(unit_itensor, Nsites)
-    Zb = fill(unit_itensor, Nsites)
 
-    for p = Nsites:-1:2 # Do right normalization, from site Nsites to 2
+    pos = trivSites+1
+
+    for p = Nsites:-1:pos+1 # Do right normalization, from site Nsites to trivSites+2
 
         # Shape of M is: left bond - physical bond - right bond
         if size(M[p]) != size(Mb[p])
@@ -579,19 +427,17 @@ function doDMRG(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
         end
         
         # Set the p-th matrix to right normal form, and multiply the transform matrix to p-1
-        Z[p], Zb[p], I, Ib, links[p-1] = decomp(M[p], Mb[p], links[p-1]; chi_max=chi_max, timing=debug, method=method, return_newlink=true) # linkind=0 means last
+        M[p], Mb[p], I, Ib, links[p-1] = decomp(M[p], Mb[p], links[p-1]; chi_max=chi_max, timing=debug, method=method, return_newlink=true) # linkind=0 means last
 
         M[p-1] = M[p-1]*I
         Mb[p-1] = Mb[p-1]*Ib
 
         # Construct R[p-1]. The indices of R is: left'' - left' - left
-        R[p-1] = Zb[p]*R[p]*W[p]*Z[p]
+        R[p-1] = Mb[p]*R[p]*W[p]*M[p]
 
         if debug
             fprintln("M[$p] = ", inds(M[p]))
             fprintln("Mb[$p] = ", inds(Mb[p]))
-            fprintln("Z[$p] = ", inds(Z[p]))
-            fprintln("Zb[$p] = ", inds(Zb[p]))
             fprintln("I[$p] = ", inds(I))
             fprintln("Ib[$p] = ", inds(Ib))
             fprintln("M[$(p-1)] = ",inds(M[p-1]))
@@ -600,16 +446,57 @@ function doDMRG(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
         end
 
         for i = 1:NumNA
-            RNA[i][p-1] = RNA[i][p]*MNb[i][p]*Z[p]
-            RNAb[i][p-1] = RNAb[i][p]*MN[i][p]*Zb[p]
+
+            if debug
+                fprintln("MN[$i][$p] = ", inds(MN[i][p]))
+                fprintln("MNb[$i][$p] = ", inds(MNb[i][p]))
+                fprintln("RNA[$i][$p] = ", inds(RNA[i][p]))
+                fprintln("RNAb[$i][$p] = ", inds(RNAb[i][p]))
+            end
+
+            RNA[i][p-1] = RNA[i][p]*MNb[i][p]*M[p]*delta(sites[p],sites[p]')
+            RNAb[i][p-1] = RNAb[i][p]*MN[i][p]*Mb[p]*delta(sites[p],sites[p]')
         end
 
     end
 
-    # Normalize M[1] and Mb[1] so that the trial wave functions are bi-normalized
-    ratio = 1/sqrt((Mb[1]*(M[1]'))[])
-    M[1] *= ratio
-    Mb[1] *= ratio
+    for p = 1:pos-1 # Do left normalization, from site 1 to trivSites
+
+        if size(M[p]) != size(Mb[p])
+            throw(ArgumentError("Shapes of M[p] and Mb[p] must match!"))
+        end
+        
+        # Set the p-th matrix to left normal form, and multiply the transform matrix to p+1
+        M[p], Mb[p], I, Ib, links[p] = decomp(M[p], Mb[p], links[p]; chi_max=chi_max, timing=debug, method=method, return_newlink=true) # linkind=0 means last
+
+        M[p+1] = M[p+1]*I
+        Mb[p+1] = Mb[p+1]*Ib
+
+        # Construct L[p+1]. The indices of R is: left'' - left' - left
+        L[p+1] = Mb[p]*L[p]*W[p]*M[p]
+
+        if debug
+            fprintln("links = ", links)
+            fprintln("M[$p] = ", inds(M[p]))
+            fprintln("Mb[$p] = ", inds(Mb[p]))
+            fprintln("I[$p] = ", inds(I))
+            fprintln("Ib[$p] = ", inds(Ib))
+            fprintln("M[$(p+1)] = ",inds(M[p+1]))
+            fprintln("Mb[$(p+1)] = ", inds(Mb[p+1]))
+            fprintln("L[$(p+1)] = ", inds(L[p+1]))
+        end
+
+        for i = 1:NumNA
+            LNA[i][p+1] = LNA[i][p]*MNb[i][p]*M[p]*delta(sites[p],sites[p]')
+            LNAb[i][p+1] = LNAb[i][p]*MN[i][p]*Mb[p]*delta(sites[p],sites[p]')
+        end
+
+    end
+
+    # Normalize M[pos] and Mb[pos] so that the trial wave functions are bi-normalized
+    ratio = 1/sqrt((Mb[pos]*(M[pos]'))[])
+    M[pos] *= ratio
+    Mb[pos] *= ratio
 
     # At this point we have turned M[2:end] to right normal form, and constructed R[2:end]
     # We start the sweep at site 0
@@ -620,7 +507,7 @@ function doDMRG(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
 
     k = 1
 
-    while k <= numsweeps+1
+    while k < numsweeps+1
         
         ##### final sweep is only for orthogonalization (disable updates)
         if k == numsweeps+1
@@ -629,7 +516,7 @@ function doDMRG(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
         end
         
         ###### Optimization sweep: left-to-right
-        for p = 1:Nsites-1
+        for p = pos:Nsites-pos
 
             # Optimize at this step
             if updateon
@@ -640,17 +527,28 @@ function doDMRG(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
             end
 
             # Move the pointer one site to the right, and left-normalize the matrices at the currenter pointer
-            Y[p], Yb[p], I, Ib, links[p] = decomp(M[p], Mb[p], links[p]; chi_max=chi_max, timing=debug, method=method, return_newlink=true)
+            M[p], Mb[p], I, Ib, links[p] = decomp(M[p], Mb[p], links[p]; chi_max=chi_max, timing=debug, method=method, return_newlink=true)
 
-            M[p+1] = I*Z[p+1]
-            Mb[p+1] = Ib*Zb[p+1]
+            M[p+1] = I*M[p+1]
+            Mb[p+1] = Ib*Mb[p+1]
 
             # Construct L[p+1]
-            L[p+1] = Yb[p]*L[p]*W[p]*Y[p]
+            L[p+1] = Mb[p]*L[p]*W[p]*M[p]
 
             for i = 1:NumNA
-                LNA[i][p+1] = LNA[i][p]*MNb[i][p]*Y[p]
-                LNAb[i][p+1] = LNAb[i][p]*MN[i][p]*Yb[p]
+                LNA[i][p+1] = LNA[i][p]*MNb[i][p]*M[p]*delta(sites[p],sites[p]')
+                LNAb[i][p+1] = LNAb[i][p]*MN[i][p]*Mb[p]*delta(sites[p],sites[p]')
+            end
+
+            if debug
+                fprintln("links = ", links)
+                fprintln("M[$p] = ", inds(M[p]))
+                fprintln("Mb[$p] = ", inds(Mb[p]))
+                fprintln("I[$p] = ", inds(I))
+                fprintln("Ib[$p] = ", inds(Ib))
+                fprintln("M[$(p+1)] = ",inds(M[p+1]))
+                fprintln("Mb[$(p+1)] = ", inds(Mb[p+1]))
+                fprintln("L[$(p+1)] = ", inds(L[p+1]))
             end
         
             ##### display energy
@@ -659,13 +557,9 @@ function doDMRG(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
             end
             
         end
-
-        # Set Y[end]
-        Y[end] = M[end]
-        Yb[end] = Mb[end]
         
         ###### Optimization sweep: right-to-left
-        for p = Nsites:-1:2
+        for p = Nsites-pos+1:-1:pos+1
 
             # Optimize at this step
             if updateon
@@ -676,16 +570,26 @@ function doDMRG(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
             end
 
             # Move the pointer one site to the left, and right-normalize the matrices at the currenter pointer
-            Z[p], Zb[p], I, Ib, links[p-1] = decomp(M[p], Mb[p], links[p-1]; chi_max=chi_max, timing=debug, method=method, return_newlink=true)
-            M[p-1] = Y[p-1]*I
-            Mb[p-1] = Yb[p-1]*Ib
+            M[p], Mb[p], I, Ib, links[p-1] = decomp(M[p], Mb[p], links[p-1]; chi_max=chi_max, timing=debug, method=method, return_newlink=true)
+            M[p-1] = M[p-1]*I
+            Mb[p-1] = Mb[p-1]*Ib
 
             # Construct R[p-1]. The indices of R is: left'' - left - left'
-            R[p-1] = Zb[p]*R[p]*W[p]*Z[p]
+            R[p-1] = Mb[p]*R[p]*W[p]*M[p]
 
             for i = 1:NumNA
-                RNA[i][p-1] = RNA[i][p]*MNb[i][p]*Z[p]
-                RNAb[i][p-1] = RNAb[i][p]*Zb[p]*MN[i][p]
+                RNA[i][p-1] = RNA[i][p]*MNb[i][p]*M[p]*delta(sites[p],sites[p]')
+                RNAb[i][p-1] = RNAb[i][p]*Mb[p]*MN[i][p]*delta(sites[p],sites[p]')
+            end
+
+            if debug
+                fprintln("M[$p] = ", inds(M[p]))
+                fprintln("Mb[$p] = ", inds(Mb[p]))
+                fprintln("I[$p] = ", inds(I))
+                fprintln("Ib[$p] = ", inds(Ib))
+                fprintln("M[$(p-1)] = ",inds(M[p-1]))
+                fprintln("Mb[$(p-1)] = ", inds(Mb[p-1]))
+                fprintln("R[$(p-1)] = ", inds(R[p-1]))
             end
         
             ##### display energy
@@ -694,13 +598,10 @@ function doDMRG(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
             end
 
         end
-
-        # Set Z[1]
-        Z[1] = M[1]
-        Zb[1] = Mb[1]
         
         # Calculate <H^2>-<H>^2
         RR = ITensor(1. +0im)
+        _,Wlinks = find_sites_and_links(W)
         newlinks = Vector{Index}(undef, Nsites-1)
         for p = Nsites:-1:1
             physind = sites[p]
@@ -709,16 +610,22 @@ function doDMRG(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
             Wupp = W[p]*delta(physind,newphys) # Upper W has indices (newphys, physind', links), contracts with Mb
             # Renew the left link
             if p > 1
-                leftlink = links[p-1]
+                leftlink = Wlinks[p-1]
                 newlinks[p-1] = Index(dim(leftlink), join(tags(leftlink), ",")*",upp")
                 Wupp *= delta(leftlink, newlinks[p-1])
             end
             # Renew the right link
             if p < Nsites
-                Wupp *= delta(Wpinds[end], newlinks[p])
+                Wupp *= delta(Wlinks[p], newlinks[p])
+            end
+            if debug
+                fprintln("At step $p, inds(Wlow) = $(inds(Wlow))")
+                fprintln("At step $p, inds(Wupp) = $(inds(Wupp))")
+                fprintln("At step $p, inds(M) = $(inds(M[p]))")
+                fprintln("At step $p, inds(Mb) = $(inds(Mb[p]))")
             end
 
-            RR = Zb[p] * RR * Wupp * Wlow * Z[p]
+            RR = (Mb[p] * RR * M[p]) * (Wupp * Wlow)
             if debug
                 fprintln("At step $p, inds(RR) = $(inds(RR))")
             end
@@ -733,8 +640,9 @@ function doDMRG(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
 
         cut = max(tol, eps(Float64)) * 10
         # Early termination if converged
-        if abs(std(Ekeep[end-(2*Nsites-3):end])) < cut && Hdif < cut
+        if abs(std(Ekeep[end-(2*Nsites-4*pos+1):end])) < cut && Hdif < cut
             fprintln("Converged")
+            converged = true
             k = numsweeps+1
         end
 
@@ -745,7 +653,11 @@ function doDMRG(M::MPS, Mb::MPS, W::MPO, chi_max::Int;
     # Clean up memory
     foreach(finalize, [LNA, RNA, LNAb, RNAb, Namp, MN, MNb, L, R])
     GC.gc()
+
+    if !converged && stop_if_not_converge
+        throw(ErrorException("Failed to converge after $numsweeps sweeps."))
+    end
             
-    return Ekeep, Hdifs, MPS(Y), MPS(Yb), MPS(Z), MPS(Zb)
+    return Ekeep, Hdifs, M, Mb
 
 end

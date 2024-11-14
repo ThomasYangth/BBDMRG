@@ -3,9 +3,10 @@ using ITensors
 #println("After using ITensors, methods of conj:")
 #println(methods(conj))
 
-include("Config.jl")
-include("MPSlib.jl")
-include("doDMRG_bb.jl")
+if !isdefined(Main, :NHDMRG)
+    include("NHDMRG.jl")
+    using .NHDMRG
+end
 
 #println("After using Config, methods of conj:")
 #println(methods(conj))
@@ -186,7 +187,7 @@ end
 
 
 sz = 2
-L = 5
+L = 10
 
 """
 M = np.random.randn(sz,sz,sz) + 1j*np.random.randn(sz,sz,sz)
@@ -211,9 +212,11 @@ M = randomMPS(ComplexF64, sites; linkdims=2)
 Mb = conj(M)'
 #W = randomMPO(sites)
 diss = sqrt(0.1)
-W = LindbladMPO(getOp(Dict("ZZ"=>1, "Z"=>0.7, "X"=>1.5)), [getOp(Dict("X"=>diss)), getOp(Dict("Y"=>diss)), getOp(Dict("Z"=>diss))], sites; dagger=false)
+W = LindbladMPO_W(getOp(Dict("ZZ"=>1, "Z"=>0.7, "X"=>1.5)), [getOp(Dict("X"=>diss)), getOp(Dict("Y"=>diss)), getOp(Dict("Z"=>diss))]; dagger=false)
 
-do_DMRGX_and_save(W, sites, 5, "Test1111Datas"; M=M, Mb=Mb, method=BB)
+#do_DMRGX_and_save(W, sites, 5, "Test1111Datas"; M=M, Mb=Mb, method=LR)
+
+doDMRG_excited_IncL(W, 40, 5, 2; k=3, debug=true, method=BB, stop_if_not_converge=true)
 
 #compare_DMRG_to_ED(W, sites; M=M, Mb=Mb)
 

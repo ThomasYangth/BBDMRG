@@ -83,9 +83,9 @@ Decompose a MPS into left or right normal form, depending on "dir".
 function decomp(M::MPS, Mb::MPS, dir::Direction; chi_max::Int=0, open_end::Bool=false, timing::Bool=false, method::DM_Method=LR)
 
     Nsites = length(M)
-    sites, links = find_sites_and_links(M)
-    Y = ITensor[]
-    Yb = ITensor[]
+    Y = deepcopy(M)
+    Yb = deepcopy(Mb)
+    sites, links = find_sites_and_links(Y)
 
     sweep_indices = (dir==Left) ? (1:Nsites) : (Nsites:-1:1)
     link_offset = (dir==Left) ? 0 : -1
@@ -93,23 +93,19 @@ function decomp(M::MPS, Mb::MPS, dir::Direction; chi_max::Int=0, open_end::Bool=
 
     for i = 1:Nsites-1
         isweep = sweep_indices[i]
-        Mi, Mbi, I, Ib = decomp(M[isweep], Mb[isweep], links[isweep+link_offset]; chi_max=chi_max, timing=timing, method=method)
-        M[i+M_offset] *= I
-        Mb[i+M_offset] *= Ib
-        push!(Y, Mi)
-        push!(Yb, Mbi)
+        Y[isweep], Yb[isweep], I, Ib = decomp(Y[isweep], Yb[isweep], links[isweep+link_offset]; chi_max=chi_max, timing=timing, method=method)
+        Y[isweep+M_offset] *= I
+        Yb[isweep+M_offset] *= Ib
     end
     if open_end
         # Append an imaginary new link to the end
         endlink = Index(1, "EndLink")
         endtensor = ITensor(1, endlink)
         endindex = sweep_indices[end]
-        Mi, Mbi, _, _, endlink = decomp(M[endindex]*endtensor, Mb[endindex]*endtensor', endlink; chi_max=chi_max, timing=timing, method=method, return_newlink=true)
-        push!(Y, Mi)
-        push!(Yb, Mbi)
-        return MPS(Y[sweep_indices]), MPS(Yb[sweep_indices]), endlink
+        Y[endindex], Yb[endindex], _, _, endlink = decomp(Y[endindex]*endtensor, Yb[endindex]*endtensor', endlink; chi_max=chi_max, timing=timing, method=method, return_newlink=true)
+        return Y, Yb, endlink
     else
-        return MPS(Y[sweep_indices]), MPS(Yb[sweep_indices])
+        return Y, Yb
     end
 
 end
@@ -122,55 +118,59 @@ Decompose a set of MPS blocks, such that [1:pos] are in left normal form, and [p
 function decomp(M::MPS, Mb::MPS, pos::Int; chi_max::Int=0, timing::Bool=false, method::DM_Method=LR)
 
     Nsites = length(M)
-    sites, links = find_sites_and_links(M)
-    Y = fill(ITensor(1), Nsites)
-    Yb = fill(ITensor(1), Nsites)
+    Y = deepcopy(M)
+    Yb = deepcopy(Mb)
+    sites, links = find_sites_and_links(Y)
 
     if !(1 <= pos <= Nsites)
         throw(ArgumentError("pos should be in [1,$Nsites]!"))
     end
 
     for i = 1:pos-1
-        Mi, Mbi, I, Ib = decomp(M[i], Mb[i], links[i]; chi_max=chi_max, timing=timing, method=method)
-        M[i+1] *= I
-        Mb[i+1] *= Ib
-        Y[i] = Mi
-        Yb[i] = Mbi
+        Y[i], Yb[i], I, Ib = decomp(Y[i], Yb[i], links[i]; chi_max=chi_max, timing=timing, method=method)
+        Y[i+1] *= I
+        Yb[i+1] *= Ib
     end
 
     for i = Nsites:-1:pos+1
-        Mi, Mbi, I, Ib = decomp(M[i], Mb[i], links[i-1]; chi_max=chi_max, timing=timing, method=method)
-        M[i-1] *= I
-        Mb[i-1] *= Ib
-        Y[i] = Mi
-        Yb[i] = Mbi
+        Y[i], Yb[i], I, Ib = decomp(Y[i], Yb[i], links[i-1]; chi_max=chi_max, timing=timing, method=method)
+        Y[i-1] *= I
+        Yb[i-1] *= Ib
     end
-
-    Y[pos] = M[pos]
-    Yb[pos] = Mb[pos]
 
     return MPS(Y), MPS(Yb)
 
 end
 
 """
-    function doubleMPSSize(M::MPS, Mb::MPS; chi_max::Int=0, timing::Bool=false, method::DM_Method=LR)
+    function doubleMPSSize(M::MPS, Mb::MPS; chi_max::Int=0, timing::Bool=false, method::DM_Method=LR, newsites::Sites=[])
 
 Given a pair of MPS, double the spatial size by combining two copies of them together.
 """
-function doubleMPSSize(M::MPS, Mb::MPS; chi_max::Int=0, timing::Bool=false, method::DM_Method=LR)
+function doubleMPSSize(M::MPS, Mb::MPS; chi_max::Int=0, timing::Bool=false, method::DM_Method=LR, newsites::Sites=[])
 
-    Y, Yb = decomp(M, Mb, Left; chi_max=chi_max, timing=timing, method=method)
+    Y = deepcopy(M)
+    Yb = deepcopy(Mb)
+    Y, Yb = decomp(Y, Yb, Left; chi_max=chi_max, timing=timing, method=method)
 
     L = length(M)
     sites,_ = find_sites_and_links(M)
 
-    newsites = [Index(dim(s), "Site $(i+L)") for (i,s) in enumerate(sites)]
-    for i in eachindex(sites)
-        M *= delta(sites[i],newsites[i])
-        Mb *= delta(sites[i]',newsites[i]')
+    if length(newsites) != L
+        if length(newsites) > 0
+            fprintln("Length of newsites $(length(newsites)) does not match length(M)=$L.")
+        end
+        newsites = [Index(dim(s), "Site $(i+L)") for (i,s) in enumerate(sites)]
     end
-    Z, Zb = decomp(M, Mb, Right; chi_max=chi_max, timing=timing, method=method)
+
+    Z = deepcopy(M)
+    Zb = deepcopy(Mb)
+
+    for i in eachindex(sites)
+        Z[i] *= delta(sites[i],newsites[i])
+        Zb[i] *= delta(sites[i]',newsites[i]')
+    end
+    Z, Zb = decomp(Z, Zb, Right; chi_max=chi_max, timing=timing, method=method)
 
     N = ITensor[]
     Nb = ITensor[]
@@ -190,7 +190,7 @@ function doubleMPSSize(M::MPS, Mb::MPS; chi_max::Int=0, timing::Bool=false, meth
         push!(N, Z[i])
         push!(Nb, Zb[i])
     end
-    
+
     return MPS(N), MPS(Nb)
 end
 
@@ -215,7 +215,7 @@ Decompose a pair of ITensors into MPS. Will produce left-normal form assuming si
 - `Yb`: MPS, the left-vector MPS after decomposition.
 - `newlink`: Index, returned only if open_end=true. The new link index.
 """
-function decomp(M::ITensor, Mb::ITensor, sites::Sites; chi_max::Int=0, open_end::Bool=false, timing::Bool=false, method::DM_Method=LR)
+function decomp(M::ITensor, Mb::ITensor, sites::Sites; chi_max::Int=0, open_end::Bool=false, timing::Bool=false, method::DM_Method=LR, linknames::Vector{String}=String[])
 
     Nsites = length(sites)
 
@@ -236,7 +236,14 @@ function decomp(M::ITensor, Mb::ITensor, sites::Sites; chi_max::Int=0, open_end:
 
         M *= rcomb
         Mb *= rcomb'
-        Yi, Ybi, M, Mb = decomp(M, Mb, Ri; chi_max=chi_max, timing=timing, method=method)
+        Yi, Ybi, M, Mb, newlink = decomp(M, Mb, Ri; chi_max=chi_max, timing=timing, method=method, return_newlink=true)
+        if length(linknames) >= i
+            newlink_renamed = Index(dim(newlink), linknames[i])
+            Yi *= delta(newlink, newlink_renamed)
+            Ybi *= delta(newlink', newlink_renamed')
+            M *= delta(newlink, newlink_renamed)
+            Mb *= delta(newlink', newlink_renamed')
+        end
         push!(Y, Yi)
         push!(Yb, Ybi)
         M *= rcomb
@@ -309,6 +316,8 @@ function decomp_biortho(M::ITensor, Mb::ITensor, link::Index; chi_max::Int = 0, 
     rhoH = rho'
     if isapprox(rho*rhoH, rhoH*rho; rtol=1e-6)
 
+        timestamp("rho is normal, doing SVD")
+
         w, u = eigen(rho+rhoH)
         if 0 < chi_max < msize
             u = u[:,sortperm(-abs.(w))[1:chi_max]]
@@ -330,8 +339,8 @@ function decomp_biortho(M::ITensor, Mb::ITensor, link::Index; chi_max::Int = 0, 
     Y = ITensor(Ys, Mci, newlink)
     Yb = ITensor(Ysb, Mci', newlink')
 
-    I = Yb*delta(Mci',Mci)*M
-    Ib = Y*delta(Mci,Mci')*Mb
+    I = Yb*delta(newlink',newlink)*delta(Mci',Mci)*M
+    Ib = Y*delta(newlink',newlink)*delta(Mci,Mci')*Mb
 
     Y = Y*Mcomb # Switch back from Mci to others
     Yb = Yb*Mcomb'
@@ -362,10 +371,13 @@ end
 function decomp_biortho_on_rho(rho; unitarize::Bool=false, chi_max::Int=0, timestamp::Function=((args...)->nothing))
 
     # First pick out the zero singular values of rho
-    Yn, Ynb, Z, Zb = nullspace(rho; full_basis=true)
+    Yn, Ynb, Z, Zb = nullspace(rho; full_basis=true, cutoff=1e-12)
     # Right here, (Yn,Z) and (Ynb,Zb) form a set of biorthonormal basis
-    # Whereas under this basis rho is non-zero only in the (Z,Zb) block
+    # Whereas under this basis rho is non-zero only in the (Z,Zb) blocks
     rhoZ = transpose(Zb)*rho*Z
+    if size(Yn)[2] > 0
+        timestamp("Found null space dimension: $(size(Yn)[2]), Remaining RhoZ: $(size(rhoZ))")
+    end
     # In the following, we only do decomposition on rhoZ.
     # Afterwards, we transform back to the original basis by applying Z x rhoZ x Zb.
 
@@ -525,7 +537,7 @@ function nullspace(M; cutoff = 0., rel_cutoff = 1e-16, full_basis::Bool = false)
     Msvd = svd(M)
     cut = rel_cutoff*max(size(M)...)
     if cutoff > 0
-        cut = min(cutoff, cut)
+        cut = max(cutoff, cut)
     end
 
     L = (Msvd.U[:,(Msvd.S).<cut])' # Left null space in rows
@@ -578,21 +590,27 @@ function schur_sorted(M::Matrix, chi::Int; timestamp::Function=((args...)->nothi
     timestamp("Bare decomposition done")
 
     if chi<=0 || L <= chi
+        timestamp("L = $L, chi = $chi, No cutoff needed")
         # In this case no cutoff is needed, A = T, S_s = Z, all others are zero.
         return Mschur.T, zeros(L,0), zeros(0,0), Mschur.Z, zeros(L,0)
     end
 
-    args = sortperm(-abs.(diagm(Mschur.T))) # Sort the eigenvalues of T in decreasing order
+    args = sortperm(-abs.(diag(Mschur.T))) # Sort the eigenvalues of T in decreasing order
     select_pos = fill(false, L)
     select_pos[args[1:chi]] .= true # select_pos is true for the largest chi eigenvalues
 
     T,Z = ordschur(Mschur, select_pos) # Reorder the Schur decomposition
 
     timestamp("Permuted")
+    fprintln("Sorted eigenvalues:")
+    fprintln(diag(T)[1:chi])
+    fprintln(diag(T)[chi+1:end])
 
     return T[1:chi,1:chi], T[chi+1:end,chi+1:end], T[1:chi,chi+1:end], Z[:,1:chi], Z[:,chi+1:end]
 
 end
+
+shift_eps = 1e-3 # Shift sigma by a small imaginary value to avoid symmetric eigenvalues
 
 """
     function doeig(Ham, v0; sigma::ComplexF64=ComplexF64(0), tol::Float64=0., ncv0::Int=50, use_sparse::Bool=true)
@@ -600,11 +618,13 @@ end
 Do sparse diagonalization to find the eigenvalue of a matrix Ham closest to sigma.
 If the sparse diagonalization fails to converge, switch to dense diagonalization.
 """
-function doeig(Ham, v0; sigma::ComplexF64=ComplexF64(0), tol::Float64=0., ncv0::Int=50, use_sparse::Bool=true, k::Int=1)
+function doeig(Ham, v0; sigma::ComplexF64=shift_eps*im, tol::Float64=0., ncv0::Int=50, use_sparse::Bool=true, k::Int=1)
 
     Hdim = size(Ham)[1]
 
     ncv = ncv0
+
+    fprintln("In doeig(), sigma = $sigma.")
 
     try
 
@@ -665,7 +685,7 @@ function doeig(Ham, v0; sigma::ComplexF64=ComplexF64(0), tol::Float64=0., ncv0::
 
 end
 
-function eigLR(L::ITensor, R::ITensor, M::ITensor, A::ITensor, Ab::ITensor; sigma::ComplexF64 = ComplexF64(0), use_sparse = true, tol = 0, normalize_against = [], ncv0 = 50, timing = false)
+function eigLR(L::ITensor, R::ITensor, M::ITensor, A::ITensor, Ab::ITensor; sigma::ComplexF64 = shift_eps*im, use_sparse = true, tol = 0, normalize_against = [], ncv0 = 50, timing = false)
 
     if timing
         t1 = now()
@@ -676,6 +696,12 @@ function eigLR(L::ITensor, R::ITensor, M::ITensor, A::ITensor, Ab::ITensor; sigm
             fprintln("Timestamp :: $(Dates.value(now()-t1)/1000)s :: $(msg)")
         end
     end
+
+    physbond = setdiff(inds(A), union(inds(L), inds(R)))
+    if length(physbond) != 1
+        throw(ArgumentError("There should be exactly one physical bond in A!\nInstead, inds(A)=$(inds(A)), inds(L)=$(inds(L)), inds(R)=$(inds(R))."))
+    end
+    physbond = physbond[1]
 
     Ham = L*M*R
     bonds = [i for i in inds(Ham) if plev(i)==0]
@@ -689,12 +715,12 @@ function eigLR(L::ITensor, R::ITensor, M::ITensor, A::ITensor, Ab::ITensor; sigm
 
     for norm_tuple in normalize_against
         Ln,Rn,Mnb,Lnb,Rnb,Mn,amp = norm_tuple
-        Ham += amp * vec(Array(Lnb*Mn*Rnb, oind'...)) * transpose(vec(Array(Ln*Mnb*Rn, oind...)))
+        Ham += amp * (Lnb*Mn*Rnb*delta(physbond',physbond)*comb') * (Ln*Mnb*Rn*delta(physbond',physbond)*comb)
     end
 
     Ham = Array(Ham, mind', mind)
     w, v = doeig(Ham, vec(Array(A, oind...));sigma=sigma, tol=tol, ncv0=ncv0, use_sparse=use_sparse)
-    w1, vL = doeig(transpose(Ham), vec(Array(Ab, oind'...)); sigma=w, tol=tol, ncv0=ncv0, use_sparse=use_sparse)
+    w1, vL = doeig(transpose(Ham), vec(Array(Ab, oind'...)); sigma=(w+shift_eps), tol=tol, ncv0=ncv0, use_sparse=use_sparse)
     # Right here, the second diagonalization is to find the right eigenvector of HT.
     # The eigenvalue of H^T should be the same as the eigenvalue of H.
     # Ab should contain the left eigenvector, which is the transpose of the right eigenvector of H^T.
