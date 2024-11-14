@@ -1,0 +1,777 @@
+Finding eigenvalue 1
+In decomp_lrrho
+lrrho cost 6.166s
+M[10] = ((dim=2|id=999|"Link,l=9"), (dim=4|id=698|"Site10"))
+Mb[10] = ((dim=2|id=999|"Link,l=9")', (dim=4|id=698|"Site10")')
+Z[10] = ((dim=4|id=698|"Site10"), (dim=4|id=655|"Link,l=9"))
+Zb[10] = ((dim=4|id=698|"Site10")', (dim=4|id=655|"Link,l=9")')
+I[10] = ((dim=4|id=655|"Link,l=9"), (dim=2|id=999|"Link,l=9"))
+Ib[10] = ((dim=4|id=655|"Link,l=9")', (dim=2|id=999|"Link,l=9")')
+M[9] = ((dim=2|id=656|"Link,l=8"), (dim=4|id=90|"Site9"), (dim=4|id=655|"Link,l=9"))
+Mb[9] = ((dim=2|id=656|"Link,l=8")', (dim=4|id=90|"Site9")', (dim=4|id=655|"Link,l=9")')
+R[9] = ((dim=4|id=655|"Link,l=9")', (dim=5|id=623|"9-link-10"), (dim=4|id=655|"Link,l=9"))
+In decomp_lrrho
+lrrho cost 0.944s
+M[9] = ((dim=2|id=656|"Link,l=8"), (dim=4|id=90|"Site9"), (dim=4|id=655|"Link,l=9"))
+Mb[9] = ((dim=2|id=656|"Link,l=8")', (dim=4|id=90|"Site9")', (dim=4|id=655|"Link,l=9")')
+Z[9] = ((dim=4|id=90|"Site9"), (dim=4|id=655|"Link,l=9"), (dim=16|id=266|"Link,l=8"))
+Zb[9] = ((dim=4|id=90|"Site9")', (dim=4|id=655|"Link,l=9")', (dim=16|id=266|"Link,l=8")')
+I[9] = ((dim=16|id=266|"Link,l=8"), (dim=2|id=656|"Link,l=8"))
+Ib[9] = ((dim=16|id=266|"Link,l=8")', (dim=2|id=656|"Link,l=8")')
+M[8] = ((dim=2|id=941|"Link,l=7"), (dim=4|id=97|"Site8"), (dim=16|id=266|"Link,l=8"))
+Mb[8] = ((dim=2|id=941|"Link,l=7")', (dim=4|id=97|"Site8")', (dim=16|id=266|"Link,l=8")')
+R[8] = ((dim=16|id=266|"Link,l=8")', (dim=5|id=80|"8-link-9"), (dim=16|id=266|"Link,l=8"))
+In decomp_lrrho
+lrrho cost 0.275s
+M[8] = ((dim=2|id=941|"Link,l=7"), (dim=4|id=97|"Site8"), (dim=16|id=266|"Link,l=8"))
+Mb[8] = ((dim=2|id=941|"Link,l=7")', (dim=4|id=97|"Site8")', (dim=16|id=266|"Link,l=8")')
+Z[8] = ((dim=4|id=97|"Site8"), (dim=16|id=266|"Link,l=8"), (dim=30|id=86|"Link,l=7"))
+Zb[8] = ((dim=4|id=97|"Site8")', (dim=16|id=266|"Link,l=8")', (dim=30|id=86|"Link,l=7")')
+I[8] = ((dim=30|id=86|"Link,l=7"), (dim=2|id=941|"Link,l=7"))
+Ib[8] = ((dim=30|id=86|"Link,l=7")', (dim=2|id=941|"Link,l=7")')
+M[7] = ((dim=2|id=776|"Link,l=6"), (dim=4|id=709|"Site7"), (dim=30|id=86|"Link,l=7"))
+Mb[7] = ((dim=2|id=776|"Link,l=6")', (dim=4|id=709|"Site7")', (dim=30|id=86|"Link,l=7")')
+R[7] = ((dim=30|id=86|"Link,l=7")', (dim=5|id=239|"7-link-8"), (dim=30|id=86|"Link,l=7"))
+In decomp_lrrho
+lrrho cost 0.052s
+M[7] = ((dim=2|id=776|"Link,l=6"), (dim=4|id=709|"Site7"), (dim=30|id=86|"Link,l=7"))
+Mb[7] = ((dim=2|id=776|"Link,l=6")', (dim=4|id=709|"Site7")', (dim=30|id=86|"Link,l=7")')
+Z[7] = ((dim=4|id=709|"Site7"), (dim=30|id=86|"Link,l=7"), (dim=30|id=797|"Link,l=6"))
+Zb[7] = ((dim=4|id=709|"Site7")', (dim=30|id=86|"Link,l=7")', (dim=30|id=797|"Link,l=6")')
+I[7] = ((dim=30|id=797|"Link,l=6"), (dim=2|id=776|"Link,l=6"))
+Ib[7] = ((dim=30|id=797|"Link,l=6")', (dim=2|id=776|"Link,l=6")')
+M[6] = ((dim=2|id=556|"Link,l=5"), (dim=4|id=343|"Site6"), (dim=30|id=797|"Link,l=6"))
+Mb[6] = ((dim=2|id=556|"Link,l=5")', (dim=4|id=343|"Site6")', (dim=30|id=797|"Link,l=6")')
+R[6] = ((dim=30|id=797|"Link,l=6")', (dim=5|id=796|"6-link-7"), (dim=30|id=797|"Link,l=6"))
+In decomp_lrrho
+lrrho cost 0.074s
+M[6] = ((dim=2|id=556|"Link,l=5"), (dim=4|id=343|"Site6"), (dim=30|id=797|"Link,l=6"))
+Mb[6] = ((dim=2|id=556|"Link,l=5")', (dim=4|id=343|"Site6")', (dim=30|id=797|"Link,l=6")')
+Z[6] = ((dim=4|id=343|"Site6"), (dim=30|id=797|"Link,l=6"), (dim=30|id=650|"Link,l=5"))
+Zb[6] = ((dim=4|id=343|"Site6")', (dim=30|id=797|"Link,l=6")', (dim=30|id=650|"Link,l=5")')
+I[6] = ((dim=30|id=650|"Link,l=5"), (dim=2|id=556|"Link,l=5"))
+Ib[6] = ((dim=30|id=650|"Link,l=5")', (dim=2|id=556|"Link,l=5")')
+M[5] = ((dim=2|id=47|"Link,l=4"), (dim=4|id=197|"Site5"), (dim=30|id=650|"Link,l=5"))
+Mb[5] = ((dim=2|id=47|"Link,l=4")', (dim=4|id=197|"Site5")', (dim=30|id=650|"Link,l=5")')
+R[5] = ((dim=30|id=650|"Link,l=5")', (dim=5|id=730|"5-link-6"), (dim=30|id=650|"Link,l=5"))
+In decomp_lrrho
+lrrho cost 0.071s
+M[5] = ((dim=2|id=47|"Link,l=4"), (dim=4|id=197|"Site5"), (dim=30|id=650|"Link,l=5"))
+Mb[5] = ((dim=2|id=47|"Link,l=4")', (dim=4|id=197|"Site5")', (dim=30|id=650|"Link,l=5")')
+Z[5] = ((dim=4|id=197|"Site5"), (dim=30|id=650|"Link,l=5"), (dim=30|id=785|"Link,l=4"))
+Zb[5] = ((dim=4|id=197|"Site5")', (dim=30|id=650|"Link,l=5")', (dim=30|id=785|"Link,l=4")')
+I[5] = ((dim=30|id=785|"Link,l=4"), (dim=2|id=47|"Link,l=4"))
+Ib[5] = ((dim=30|id=785|"Link,l=4")', (dim=2|id=47|"Link,l=4")')
+M[4] = ((dim=2|id=451|"Link,l=3"), (dim=4|id=109|"Site4"), (dim=30|id=785|"Link,l=4"))
+Mb[4] = ((dim=2|id=451|"Link,l=3")', (dim=4|id=109|"Site4")', (dim=30|id=785|"Link,l=4")')
+R[4] = ((dim=30|id=785|"Link,l=4")', (dim=5|id=679|"4-link-5"), (dim=30|id=785|"Link,l=4"))
+In decomp_lrrho
+lrrho cost 0.305s
+M[4] = ((dim=2|id=451|"Link,l=3"), (dim=4|id=109|"Site4"), (dim=30|id=785|"Link,l=4"))
+Mb[4] = ((dim=2|id=451|"Link,l=3")', (dim=4|id=109|"Site4")', (dim=30|id=785|"Link,l=4")')
+Z[4] = ((dim=4|id=109|"Site4"), (dim=30|id=785|"Link,l=4"), (dim=30|id=405|"Link,l=3"))
+Zb[4] = ((dim=4|id=109|"Site4")', (dim=30|id=785|"Link,l=4")', (dim=30|id=405|"Link,l=3")')
+I[4] = ((dim=30|id=405|"Link,l=3"), (dim=2|id=451|"Link,l=3"))
+Ib[4] = ((dim=30|id=405|"Link,l=3")', (dim=2|id=451|"Link,l=3")')
+M[3] = ((dim=2|id=162|"Link,l=2"), (dim=4|id=65|"Site3"), (dim=30|id=405|"Link,l=3"))
+Mb[3] = ((dim=2|id=162|"Link,l=2")', (dim=4|id=65|"Site3")', (dim=30|id=405|"Link,l=3")')
+R[3] = ((dim=30|id=405|"Link,l=3")', (dim=5|id=262|"3-link-4"), (dim=30|id=405|"Link,l=3"))
+In decomp_lrrho
+lrrho cost 0.048s
+M[3] = ((dim=2|id=162|"Link,l=2"), (dim=4|id=65|"Site3"), (dim=30|id=405|"Link,l=3"))
+Mb[3] = ((dim=2|id=162|"Link,l=2")', (dim=4|id=65|"Site3")', (dim=30|id=405|"Link,l=3")')
+Z[3] = ((dim=4|id=65|"Site3"), (dim=30|id=405|"Link,l=3"), (dim=30|id=490|"Link,l=2"))
+Zb[3] = ((dim=4|id=65|"Site3")', (dim=30|id=405|"Link,l=3")', (dim=30|id=490|"Link,l=2")')
+I[3] = ((dim=30|id=490|"Link,l=2"), (dim=2|id=162|"Link,l=2"))
+Ib[3] = ((dim=30|id=490|"Link,l=2")', (dim=2|id=162|"Link,l=2")')
+M[2] = ((dim=2|id=576|"Link,l=1"), (dim=4|id=127|"Site2"), (dim=30|id=490|"Link,l=2"))
+Mb[2] = ((dim=2|id=576|"Link,l=1")', (dim=4|id=127|"Site2")', (dim=30|id=490|"Link,l=2")')
+R[2] = ((dim=30|id=490|"Link,l=2")', (dim=5|id=184|"2-link-3"), (dim=30|id=490|"Link,l=2"))
+In decomp_lrrho
+lrrho cost 0.047s
+M[2] = ((dim=2|id=576|"Link,l=1"), (dim=4|id=127|"Site2"), (dim=30|id=490|"Link,l=2"))
+Mb[2] = ((dim=2|id=576|"Link,l=1")', (dim=4|id=127|"Site2")', (dim=30|id=490|"Link,l=2")')
+Z[2] = ((dim=4|id=127|"Site2"), (dim=30|id=490|"Link,l=2"), (dim=30|id=214|"Link,l=1"))
+Zb[2] = ((dim=4|id=127|"Site2")', (dim=30|id=490|"Link,l=2")', (dim=30|id=214|"Link,l=1")')
+I[2] = ((dim=30|id=214|"Link,l=1"), (dim=2|id=576|"Link,l=1"))
+Ib[2] = ((dim=30|id=214|"Link,l=1")', (dim=2|id=576|"Link,l=1")')
+M[1] = ((dim=4|id=648|"Site1"), (dim=30|id=214|"Link,l=1"))
+Mb[1] = ((dim=4|id=648|"Site1")', (dim=30|id=214|"Link,l=1")')
+R[1] = ((dim=30|id=214|"Link,l=1")', (dim=5|id=313|"1-link-2"), (dim=30|id=214|"Link,l=1"))
+Timestamp :: 1.271s :: In eigLR, bond dimensions: Index{Int64}[(dim=4|id=648|"Site1"), (dim=30|id=214|"Link,l=1")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -2.7100516468373654 + 0.02304092223872039im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -2.710073328481042 + 0.02302906229987096im
+Timestamp :: 40.41s :: Done.
+In decomp_lrrho
+lrrho cost 0.589s
+Sweep: 1 of 5, Loc: 1, chi: 30, Energy: -2.710 +0.023im
+Timestamp :: 5.21s :: In eigLR, bond dimensions: Index{Int64}[(dim=4|id=672|"Link,l=1"), (dim=4|id=127|"Site2"), (dim=30|id=490|"Link,l=2")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -2.416220392099535 + 0.033520202290087765im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -2.4162218893482637 + 0.03352324321133658im
+Timestamp :: 108.694s :: Done.
+In decomp_lrrho
+lrrho cost 0.001s
+Sweep: 1 of 5, Loc: 2, chi: 30, Energy: -2.416 +0.034im
+Timestamp :: 0.462s :: In eigLR, bond dimensions: Index{Int64}[(dim=16|id=196|"Link,l=2"), (dim=4|id=65|"Site3"), (dim=30|id=405|"Link,l=3")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -2.0501215949450478 - 0.5458313822061923im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -2.0501212256618007 - 0.54582945691783im
+Timestamp :: 160.701s :: Done.
+In decomp_lrrho
+lrrho cost 0.076s
+Sweep: 1 of 5, Loc: 3, chi: 30, Energy: -2.050 -0.546im
+Timestamp :: 0.73s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=196|"Link,l=3"), (dim=4|id=109|"Site4"), (dim=30|id=785|"Link,l=4")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.7841261545054576 - 0.4423913998136149im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.784126168598664 - 0.4423914293278205im
+Timestamp :: 197.667s :: Done.
+In decomp_lrrho
+lrrho cost 0.687s
+Sweep: 1 of 5, Loc: 4, chi: 30, Energy: -1.784 -0.442im
+Timestamp :: 0.593s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=321|"Link,l=4"), (dim=4|id=197|"Site5"), (dim=30|id=650|"Link,l=5")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.5473358686952736 - 0.013894631834156526im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.5473359018011426 - 0.013894619304354828im
+Timestamp :: 197.867s :: Done.
+In decomp_lrrho
+lrrho cost 0.317s
+Sweep: 1 of 5, Loc: 5, chi: 30, Energy: -1.547 -0.014im
+Timestamp :: 0.482s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=400|"Link,l=5"), (dim=4|id=343|"Site6"), (dim=30|id=797|"Link,l=6")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.1443487628089855 + 0.3672276023875753im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.1443487628089857 + 0.36722760238757346im
+Timestamp :: 197.238s :: Done.
+In decomp_lrrho
+lrrho cost 0.289s
+Sweep: 1 of 5, Loc: 6, chi: 30, Energy: -1.144 +0.367im
+Timestamp :: 0.479s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=421|"Link,l=6"), (dim=4|id=709|"Site7"), (dim=30|id=86|"Link,l=7")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.0386241955941347 - 0.2600931050348055im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.038624195594129 - 0.2600931050348001im
+Timestamp :: 196.442s :: Done.
+In decomp_lrrho
+lrrho cost 0.303s
+Sweep: 1 of 5, Loc: 7, chi: 30, Energy: -1.039 -0.260im
+Timestamp :: 0.316s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=82|"Link,l=7"), (dim=4|id=97|"Site8"), (dim=16|id=266|"Link,l=8")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.07117311382015647 - 0.012831156195371455im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.07117311382015645 - 0.012831156195372015im
+Timestamp :: 158.909s :: Done.
+In decomp_lrrho
+lrrho cost 0.34s
+Sweep: 1 of 5, Loc: 8, chi: 30, Energy: -0.071 -0.013im
+Timestamp :: 0.026s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=913|"Link,l=8"), (dim=4|id=90|"Site9"), (dim=4|id=655|"Link,l=9")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.13515133100073434 - 0.06276086300067993im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.13515133100073431 - 0.06276086300067979im
+Timestamp :: 103.468s :: Done.
+In decomp_lrrho
+lrrho cost 0.482s
+Sweep: 1 of 5, Loc: 9, chi: 30, Energy: -0.135 -0.063im
+Timestamp :: 0.121s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=139|"Link,l=9"), (dim=4|id=698|"Site10")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.03953713166853521 - 0.0317103646550132im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.039537131668534974 - 0.03171036465501312im
+Timestamp :: 35.335s :: Done.
+In decomp_lrrho
+lrrho cost 0.0s
+Sweep: 1 of 5, Loc: 10, chi: 30, Energy: -0.040 -0.032im
+Timestamp :: 0.118s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=913|"Link,l=8"), (dim=4|id=90|"Site9"), (dim=4|id=592|"Link,l=9")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.13515133100073443 - 0.06276086300068036im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.13515133100073445 - 0.06276086300067986im
+Timestamp :: 103.359s :: Done.
+In decomp_lrrho
+lrrho cost 0.002s
+Sweep: 1 of 5, Loc: 9, chi: 30, Energy: -0.135 -0.063im
+Timestamp :: 0.337s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=82|"Link,l=7"), (dim=4|id=97|"Site8"), (dim=16|id=694|"Link,l=8")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.07117311382015645 - 0.01283115619537153im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.07117311382015654 - 0.012831156195371547im
+Timestamp :: 160.169s :: Done.
+In decomp_lrrho
+lrrho cost 0.068s
+Sweep: 1 of 5, Loc: 8, chi: 30, Energy: -0.071 -0.013im
+Timestamp :: 0.47s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=421|"Link,l=6"), (dim=4|id=709|"Site7"), (dim=30|id=718|"Link,l=7")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.08336397951854953 - 0.031887692010494226im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.0833639795185497 - 0.031887692010494184im
+Timestamp :: 198.678s :: Done.
+In decomp_lrrho
+lrrho cost 0.321s
+Sweep: 1 of 5, Loc: 7, chi: 30, Energy: -0.083 -0.032im
+Timestamp :: 0.485s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=400|"Link,l=5"), (dim=4|id=343|"Site6"), (dim=30|id=41|"Link,l=6")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.08706636659603331 - 0.013479446158883593im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.08706636659603322 - 0.013479446158883577im
+Timestamp :: 199.036s :: Done.
+In decomp_lrrho
+lrrho cost 0.362s
+Sweep: 1 of 5, Loc: 6, chi: 30, Energy: -0.087 -0.013im
+Timestamp :: 0.669s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=321|"Link,l=4"), (dim=4|id=197|"Site5"), (dim=30|id=675|"Link,l=5")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.0830941803220216 - 0.02819148929710618im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.08309418032202175 - 0.028191489297106243im
+Timestamp :: 199.42s :: Done.
+In decomp_lrrho
+lrrho cost 0.32s
+Sweep: 1 of 5, Loc: 5, chi: 30, Energy: -0.083 -0.028im
+Timestamp :: 0.511s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=196|"Link,l=3"), (dim=4|id=109|"Site4"), (dim=30|id=783|"Link,l=4")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.0821397156073186 - 0.031426306546145304im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.08213971560731854 - 0.03142630654614532im
+Timestamp :: 199.909s :: Done.
+In decomp_lrrho
+lrrho cost 0.387s
+Sweep: 1 of 5, Loc: 4, chi: 30, Energy: -0.082 -0.031im
+Timestamp :: 0.345s :: In eigLR, bond dimensions: Index{Int64}[(dim=16|id=196|"Link,l=2"), (dim=4|id=65|"Site3"), (dim=30|id=563|"Link,l=3")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.08564199138854008 - 0.029567173741413665im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.0856419913885399 - 0.029567173741413606im
+Timestamp :: 161.585s :: Done.
+In decomp_lrrho
+lrrho cost 0.442s
+Sweep: 1 of 5, Loc: 3, chi: 30, Energy: -0.086 -0.030im
+Timestamp :: 0.045s :: In eigLR, bond dimensions: Index{Int64}[(dim=4|id=672|"Link,l=1"), (dim=4|id=127|"Site2"), (dim=30|id=349|"Link,l=2")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.09359856852136161 - 0.03114217013487262im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.09359856852136147 - 0.03114217013487258im
+Timestamp :: 104.265s :: Done.
+In decomp_lrrho
+lrrho cost 0.553s
+Sweep: 1 of 5, Loc: 2, chi: 30, Energy: -0.094 -0.031im
+At step 10, inds(RR) = ((dim=4|id=592|"Link,l=9")', (dim=5|id=828|"9-link-10,upp"), (dim=5|id=623|"9-link-10"), (dim=4|id=592|"Link,l=9"))
+At step 9, inds(RR) = ((dim=16|id=694|"Link,l=8")', (dim=5|id=933|"8-link-9,upp"), (dim=5|id=80|"8-link-9"), (dim=16|id=694|"Link,l=8"))
+At step 8, inds(RR) = ((dim=30|id=718|"Link,l=7")', (dim=5|id=371|"7-link-8,upp"), (dim=5|id=239|"7-link-8"), (dim=30|id=718|"Link,l=7"))
+At step 7, inds(RR) = ((dim=30|id=41|"Link,l=6")', (dim=5|id=887|"6-link-7,upp"), (dim=5|id=796|"6-link-7"), (dim=30|id=41|"Link,l=6"))
+At step 6, inds(RR) = ((dim=30|id=675|"Link,l=5")', (dim=5|id=214|"5-link-6,upp"), (dim=5|id=730|"5-link-6"), (dim=30|id=675|"Link,l=5"))
+At step 5, inds(RR) = ((dim=30|id=783|"Link,l=4")', (dim=5|id=577|"4-link-5,upp"), (dim=5|id=679|"4-link-5"), (dim=30|id=783|"Link,l=4"))
+At step 4, inds(RR) = ((dim=30|id=563|"Link,l=3")', (dim=5|id=401|"3-link-4,upp"), (dim=5|id=262|"3-link-4"), (dim=30|id=563|"Link,l=3"))
+At step 3, inds(RR) = ((dim=30|id=349|"Link,l=2")', (dim=5|id=350|"2-link-3,upp"), (dim=5|id=184|"2-link-3"), (dim=30|id=349|"Link,l=2"))
+At step 2, inds(RR) = ((dim=30|id=249|"Link,l=1")', (dim=5|id=630|"1-link-2,upp"), (dim=5|id=313|"1-link-2"), (dim=30|id=249|"Link,l=1"))
+At step 1, inds(RR) = ()
+Sweep: 1 of 5, Energy: -0.094 -0.031im, Hdif: 2.005, Bonddim: 30, tol: 0.001
+Timestamp :: 0.124s :: In eigLR, bond dimensions: Index{Int64}[(dim=4|id=648|"Site1"), (dim=30|id=249|"Link,l=1")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.06556018345297591 + 0.002902932035479548im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.06556018345297544 + 0.0029029320354798417im
+Timestamp :: 35.15s :: Done.
+In decomp_lrrho
+lrrho cost 0.001s
+Sweep: 2 of 5, Loc: 1, chi: 30, Energy: -0.066 +0.003im
+Timestamp :: 0.274s :: In eigLR, bond dimensions: Index{Int64}[(dim=4|id=429|"Link,l=1"), (dim=4|id=127|"Site2"), (dim=30|id=349|"Link,l=2")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.09359856852136146 - 0.031142170134872547im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.09359856852136143 - 0.031142170134872558im
+Timestamp :: 103.852s :: Done.
+In decomp_lrrho
+lrrho cost 0.002s
+Sweep: 2 of 5, Loc: 2, chi: 30, Energy: -0.094 -0.031im
+Timestamp :: 0.343s :: In eigLR, bond dimensions: Index{Int64}[(dim=16|id=89|"Link,l=2"), (dim=4|id=65|"Site3"), (dim=30|id=563|"Link,l=3")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.08564199138853984 - 0.029567173741413592im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.08564199138853985 - 0.0295671737414136im
+Timestamp :: 162.141s :: Done.
+In decomp_lrrho
+lrrho cost 0.144s
+Sweep: 2 of 5, Loc: 3, chi: 30, Energy: -0.086 -0.030im
+Timestamp :: 0.88s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=78|"Link,l=3"), (dim=4|id=109|"Site4"), (dim=30|id=783|"Link,l=4")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.11386226643845017 - 0.0269497360967927im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.11386226643845032 - 0.02694973609679277im
+Timestamp :: 201.77s :: Done.
+In decomp_lrrho
+lrrho cost 0.438s
+Sweep: 2 of 5, Loc: 4, chi: 30, Energy: -0.114 -0.027im
+Timestamp :: 0.924s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=751|"Link,l=4"), (dim=4|id=197|"Site5"), (dim=30|id=675|"Link,l=5")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.13599688472065416 - 0.05674823550272832im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.13599688472065405 - 0.056748235502728235im
+Timestamp :: 201.989s :: Done.
+In decomp_lrrho
+lrrho cost 0.409s
+Sweep: 2 of 5, Loc: 5, chi: 30, Energy: -0.136 -0.057im
+Timestamp :: 0.666s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=950|"Link,l=5"), (dim=4|id=343|"Site6"), (dim=30|id=41|"Link,l=6")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.11805595780328218 - 0.03636821381168323im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.11805595780328194 - 0.036368213811683155im
+Timestamp :: 201.672s :: Done.
+In decomp_lrrho
+lrrho cost 0.441s
+Sweep: 2 of 5, Loc: 6, chi: 30, Energy: -0.118 -0.036im
+Timestamp :: 0.531s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=477|"Link,l=6"), (dim=4|id=709|"Site7"), (dim=30|id=718|"Link,l=7")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.09566269678801041 - 0.04806362278188136im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.09566269678801047 - 0.04806362278188135im
+Timestamp :: 201.044s :: Done.
+In decomp_lrrho
+lrrho cost 0.4s
+Sweep: 2 of 5, Loc: 7, chi: 30, Energy: -0.096 -0.048im
+Timestamp :: 0.344s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=185|"Link,l=7"), (dim=4|id=97|"Site8"), (dim=16|id=694|"Link,l=8")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.05648731304358158 - 0.026469268536584056im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.056487313043581594 - 0.026469268536584045im
+Timestamp :: 161.748s :: Done.
+In decomp_lrrho
+lrrho cost 0.378s
+Sweep: 2 of 5, Loc: 8, chi: 30, Energy: -0.056 -0.026im
+Timestamp :: 0.025s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=717|"Link,l=8"), (dim=4|id=90|"Site9"), (dim=4|id=592|"Link,l=9")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.06052135844516036 - 0.027148978487046543im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.06052135844516035 - 0.027148978487046966im
+Timestamp :: 104.236s :: Done.
+In decomp_lrrho
+lrrho cost 0.526s
+Sweep: 2 of 5, Loc: 9, chi: 30, Energy: -0.061 -0.027im
+Timestamp :: 0.007s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=948|"Link,l=9"), (dim=4|id=698|"Site10")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.055788823173500104 + 0.004129070474430594im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.05578882317350006 + 0.004129070474430759im
+Timestamp :: 34.664s :: Done.
+In decomp_lrrho
+lrrho cost 0.001s
+Sweep: 2 of 5, Loc: 10, chi: 30, Energy: -0.056 +0.004im
+Timestamp :: 0.169s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=717|"Link,l=8"), (dim=4|id=90|"Site9"), (dim=4|id=446|"Link,l=9")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.06052135844516012 - 0.027148978487046473im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.06052135844516024 - 0.027148978487046553im
+Timestamp :: 104.366s :: Done.
+In decomp_lrrho
+lrrho cost 0.002s
+Sweep: 2 of 5, Loc: 9, chi: 30, Energy: -0.061 -0.027im
+Timestamp :: 0.34s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=185|"Link,l=7"), (dim=4|id=97|"Site8"), (dim=16|id=188|"Link,l=8")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.056487313043581365 - 0.026469268536583938im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.05648731304358139 - 0.026469268536583948im
+Timestamp :: 161.752s :: Done.
+In decomp_lrrho
+lrrho cost 0.131s
+Sweep: 2 of 5, Loc: 8, chi: 30, Energy: -0.056 -0.026im
+Timestamp :: 0.685s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=477|"Link,l=6"), (dim=4|id=709|"Site7"), (dim=30|id=769|"Link,l=7")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.07025795741320064 - 0.041679479780275974im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.07025795741320057 - 0.04167947978027588im
+Timestamp :: 201.488s :: Done.
+In decomp_lrrho
+lrrho cost 0.35s
+Sweep: 2 of 5, Loc: 7, chi: 30, Energy: -0.070 -0.042im
+Timestamp :: 0.502s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=950|"Link,l=5"), (dim=4|id=343|"Site6"), (dim=30|id=606|"Link,l=6")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.07411152498888543 - 0.03886527502305777im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.07411152498888558 - 0.038865275023057866im
+Timestamp :: 200.453s :: Done.
+In decomp_lrrho
+lrrho cost 0.437s
+Sweep: 2 of 5, Loc: 6, chi: 30, Energy: -0.074 -0.039im
+Timestamp :: 0.516s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=751|"Link,l=4"), (dim=4|id=197|"Site5"), (dim=30|id=49|"Link,l=5")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.08683809599180294 - 0.05122359698520531im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.08683809599180292 - 0.05122359698520535im
+Timestamp :: 201.248s :: Done.
+In decomp_lrrho
+lrrho cost 0.338s
+Sweep: 2 of 5, Loc: 5, chi: 30, Energy: -0.087 -0.051im
+Timestamp :: 0.814s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=78|"Link,l=3"), (dim=4|id=109|"Site4"), (dim=30|id=163|"Link,l=4")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.06394454544902073 - 0.021839302054305277im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.06394454544902067 - 0.021839302054305284im
+Timestamp :: 201.564s :: Done.
+In decomp_lrrho
+lrrho cost 0.394s
+Sweep: 2 of 5, Loc: 4, chi: 30, Energy: -0.064 -0.022im
+Timestamp :: 0.762s :: In eigLR, bond dimensions: Index{Int64}[(dim=16|id=89|"Link,l=2"), (dim=4|id=65|"Site3"), (dim=30|id=851|"Link,l=3")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.030214008673282736 - 0.024631462127783603im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.030214008673282708 - 0.02463146212778355im
+Timestamp :: 162.474s :: Done.
+In decomp_lrrho
+lrrho cost 0.346s
+Sweep: 2 of 5, Loc: 3, chi: 30, Energy: -0.030 -0.025im
+Timestamp :: 0.034s :: In eigLR, bond dimensions: Index{Int64}[(dim=4|id=429|"Link,l=1"), (dim=4|id=127|"Site2"), (dim=30|id=910|"Link,l=2")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.036566587636847794 - 0.026859909408656606im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.03656658763684783 - 0.02685990940865664im
+Timestamp :: 103.556s :: Done.
+In decomp_lrrho
+lrrho cost 0.513s
+Sweep: 2 of 5, Loc: 2, chi: 30, Energy: -0.037 -0.027im
+At step 10, inds(RR) = ((dim=4|id=446|"Link,l=9")', (dim=5|id=383|"9-link-10,upp"), (dim=5|id=623|"9-link-10"), (dim=4|id=446|"Link,l=9"))
+At step 9, inds(RR) = ((dim=16|id=188|"Link,l=8")', (dim=5|id=927|"8-link-9,upp"), (dim=5|id=80|"8-link-9"), (dim=16|id=188|"Link,l=8"))
+At step 8, inds(RR) = ((dim=30|id=769|"Link,l=7")', (dim=5|id=190|"7-link-8,upp"), (dim=5|id=239|"7-link-8"), (dim=30|id=769|"Link,l=7"))
+At step 7, inds(RR) = ((dim=30|id=606|"Link,l=6")', (dim=5|id=383|"6-link-7,upp"), (dim=5|id=796|"6-link-7"), (dim=30|id=606|"Link,l=6"))
+At step 6, inds(RR) = ((dim=30|id=49|"Link,l=5")', (dim=5|id=244|"5-link-6,upp"), (dim=5|id=730|"5-link-6"), (dim=30|id=49|"Link,l=5"))
+At step 5, inds(RR) = ((dim=30|id=163|"Link,l=4")', (dim=5|id=251|"4-link-5,upp"), (dim=5|id=679|"4-link-5"), (dim=30|id=163|"Link,l=4"))
+At step 4, inds(RR) = ((dim=30|id=851|"Link,l=3")', (dim=5|id=710|"3-link-4,upp"), (dim=5|id=262|"3-link-4"), (dim=30|id=851|"Link,l=3"))
+At step 3, inds(RR) = ((dim=30|id=910|"Link,l=2")', (dim=5|id=515|"2-link-3,upp"), (dim=5|id=184|"2-link-3"), (dim=30|id=910|"Link,l=2"))
+At step 2, inds(RR) = ((dim=30|id=586|"Link,l=1")', (dim=5|id=598|"1-link-2,upp"), (dim=5|id=313|"1-link-2"), (dim=30|id=586|"Link,l=1"))
+At step 1, inds(RR) = ()
+Sweep: 2 of 5, Energy: -0.037 -0.027im, Hdif: 0.557, Bonddim: 30, tol: 0.001
+Timestamp :: 0.013s :: In eigLR, bond dimensions: Index{Int64}[(dim=4|id=648|"Site1"), (dim=30|id=586|"Link,l=1")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.03642305982493402 - 0.02542240178598121im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.03642305982493421 - 0.02542240178598143im
+Timestamp :: 35.593s :: Done.
+In decomp_lrrho
+lrrho cost 0.0s
+Sweep: 3 of 5, Loc: 1, chi: 30, Energy: -0.036 -0.025im
+Timestamp :: 0.248s :: In eigLR, bond dimensions: Index{Int64}[(dim=4|id=48|"Link,l=1"), (dim=4|id=127|"Site2"), (dim=30|id=910|"Link,l=2")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.0365665876368478 - 0.026859909408656586im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.03656658763684782 - 0.026859909408656627im
+Timestamp :: 104.699s :: Done.
+In decomp_lrrho
+lrrho cost 0.095s
+Sweep: 3 of 5, Loc: 2, chi: 30, Energy: -0.037 -0.027im
+Timestamp :: 0.437s :: In eigLR, bond dimensions: Index{Int64}[(dim=16|id=516|"Link,l=2"), (dim=4|id=65|"Site3"), (dim=30|id=851|"Link,l=3")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.03021400867328267 - 0.024631462127783534im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.03021400867328267 - 0.024631462127783523im
+Timestamp :: 161.631s :: Done.
+In decomp_lrrho
+lrrho cost 0.082s
+Sweep: 3 of 5, Loc: 3, chi: 30, Energy: -0.030 -0.025im
+Timestamp :: 0.604s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=192|"Link,l=3"), (dim=4|id=109|"Site4"), (dim=30|id=163|"Link,l=4")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.028452040529936353 - 0.023984145329089216im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.028452040529936367 - 0.023984145329089233im
+Timestamp :: 201.346s :: Done.
+In decomp_lrrho
+lrrho cost 0.349s
+Sweep: 3 of 5, Loc: 4, chi: 30, Energy: -0.028 -0.024im
+Timestamp :: 0.546s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=728|"Link,l=4"), (dim=4|id=197|"Site5"), (dim=30|id=49|"Link,l=5")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.025074850768568323 - 0.023797809744851434im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.025074850768568295 - 0.02379780974485137im
+Timestamp :: 200.841s :: Done.
+In decomp_lrrho
+lrrho cost 0.344s
+Sweep: 3 of 5, Loc: 5, chi: 30, Energy: -0.025 -0.024im
+Timestamp :: 0.511s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=227|"Link,l=5"), (dim=4|id=343|"Site6"), (dim=30|id=606|"Link,l=6")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.020831441712344415 - 0.01855682148204248im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.02083144171234442 - 0.018556821482042497im
+Timestamp :: 200.287s :: Done.
+In decomp_lrrho
+lrrho cost 0.339s
+Sweep: 3 of 5, Loc: 6, chi: 30, Energy: -0.021 -0.019im
+Timestamp :: 0.52s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=806|"Link,l=6"), (dim=4|id=709|"Site7"), (dim=30|id=769|"Link,l=7")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.014677069346130922 - 0.01380643550480109im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.014677069346130906 - 0.013806435504801108im
+Timestamp :: 201.264s :: Done.
+In decomp_lrrho
+lrrho cost 0.335s
+Sweep: 3 of 5, Loc: 7, chi: 30, Energy: -0.015 -0.014im
+Timestamp :: 0.32s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=711|"Link,l=7"), (dim=4|id=97|"Site8"), (dim=16|id=188|"Link,l=8")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.00029864012580448106 - 8.550209703194111e-6im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.00029864012580448833 - 8.550209703189078e-6im
+Timestamp :: 161.568s :: Done.
+In decomp_lrrho
+lrrho cost 0.37s
+Sweep: 3 of 5, Loc: 8, chi: 30, Energy: -0.000 -0.000im
+Timestamp :: 0.025s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=169|"Link,l=8"), (dim=4|id=90|"Site9"), (dim=4|id=446|"Link,l=9")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.0006296958731647769 + 0.00015772453519795533im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.0006296958731647784 + 0.0001577245351979541im
+Timestamp :: 103.181s :: Done.
+In decomp_lrrho
+lrrho cost 0.531s
+Sweep: 3 of 5, Loc: 9, chi: 30, Energy: -0.001 +0.000im
+Timestamp :: 0.007s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=416|"Link,l=9"), (dim=4|id=698|"Site10")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.000671413313985644 + 0.00016141622112420876im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.0006714133139856453 + 0.0001614162211242087im
+Timestamp :: 34.828s :: Done.
+In decomp_lrrho
+lrrho cost 0.001s
+Sweep: 3 of 5, Loc: 10, chi: 30, Energy: -0.001 +0.000im
+Timestamp :: 0.17s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=169|"Link,l=8"), (dim=4|id=90|"Site9"), (dim=4|id=775|"Link,l=9")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.000629695873164777 + 0.0001577245351979551im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.0006296958731647776 + 0.00015772453519795449im
+Timestamp :: 103.936s :: Done.
+In decomp_lrrho
+lrrho cost 0.002s
+Sweep: 3 of 5, Loc: 9, chi: 30, Energy: -0.001 +0.000im
+Timestamp :: 0.33s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=711|"Link,l=7"), (dim=4|id=97|"Site8"), (dim=16|id=543|"Link,l=8")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.000298640125804492 - 8.550209703190432e-6im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.0002986401258044921 - 8.550209703190315e-6im
+Timestamp :: 162.013s :: Done.
+In decomp_lrrho
+lrrho cost 0.09s
+Sweep: 3 of 5, Loc: 8, chi: 30, Energy: -0.000 -0.000im
+Timestamp :: 0.502s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=806|"Link,l=6"), (dim=4|id=709|"Site7"), (dim=30|id=492|"Link,l=7")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.0002596067980742378 - 6.070209630595888e-5im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.00025960679807423827 - 6.070209630595845e-5im
+Timestamp :: 202.884s :: Done.
+In decomp_lrrho
+lrrho cost 0.399s
+Sweep: 3 of 5, Loc: 7, chi: 30, Energy: -0.000 -0.000im
+Timestamp :: 0.518s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=227|"Link,l=5"), (dim=4|id=343|"Site6"), (dim=30|id=503|"Link,l=6")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.00023625691148641478 - 4.106452383156921e-5im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.00023625691148641557 - 4.106452383156947e-5im
+Timestamp :: 201.188s :: Done.
+In decomp_lrrho
+lrrho cost 0.436s
+Sweep: 3 of 5, Loc: 6, chi: 30, Energy: -0.000 -0.000im
+Timestamp :: 0.667s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=728|"Link,l=4"), (dim=4|id=197|"Site5"), (dim=30|id=677|"Link,l=5")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.00016798842721349772 + 7.10174665527094e-5im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -0.00016798842721349762 + 7.101746655270936e-5im
+Timestamp :: 202.766s :: Done.
+In decomp_lrrho
+lrrho cost 0.342s
+Sweep: 3 of 5, Loc: 5, chi: 30, Energy: -0.000 +0.000im
+Timestamp :: 0.512s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=192|"Link,l=3"), (dim=4|id=109|"Site4"), (dim=30|id=432|"Link,l=4")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -6.185829516763075e-5 + 2.388261888761902e-5im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -6.185829516763085e-5 + 2.3882618887619154e-5im
+Timestamp :: 201.015s :: Done.
+In decomp_lrrho
+lrrho cost 0.385s
+Sweep: 3 of 5, Loc: 4, chi: 30, Energy: -0.000 +0.000im
+Timestamp :: 0.34s :: In eigLR, bond dimensions: Index{Int64}[(dim=16|id=516|"Link,l=2"), (dim=4|id=65|"Site3"), (dim=30|id=405|"Link,l=3")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -8.942649779286494e-6 - 1.3685865466563368e-7im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -8.94264977928651e-6 - 1.3685865466562801e-7im
+Timestamp :: 160.965s :: Done.
+In decomp_lrrho
+lrrho cost 0.411s
+Sweep: 3 of 5, Loc: 3, chi: 30, Energy: -0.000 -0.000im
+Timestamp :: 0.043s :: In eigLR, bond dimensions: Index{Int64}[(dim=4|id=48|"Link,l=1"), (dim=4|id=127|"Site2"), (dim=30|id=581|"Link,l=2")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -9.909973895165123e-6 - 6.245247190339479e-7im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -9.909973895165148e-6 - 6.245247190339482e-7im
+Timestamp :: 102.967s :: Done.
+In decomp_lrrho
+lrrho cost 0.574s
+Sweep: 3 of 5, Loc: 2, chi: 30, Energy: -0.000 -0.000im
+At step 10, inds(RR) = ((dim=4|id=775|"Link,l=9")', (dim=5|id=872|"9-link-10,upp"), (dim=5|id=623|"9-link-10"), (dim=4|id=775|"Link,l=9"))
+At step 9, inds(RR) = ((dim=16|id=543|"Link,l=8")', (dim=5|id=49|"8-link-9,upp"), (dim=5|id=80|"8-link-9"), (dim=16|id=543|"Link,l=8"))
+At step 8, inds(RR) = ((dim=30|id=492|"Link,l=7")', (dim=5|id=150|"7-link-8,upp"), (dim=5|id=239|"7-link-8"), (dim=30|id=492|"Link,l=7"))
+At step 7, inds(RR) = ((dim=30|id=503|"Link,l=6")', (dim=5|id=382|"6-link-7,upp"), (dim=5|id=796|"6-link-7"), (dim=30|id=503|"Link,l=6"))
+At step 6, inds(RR) = ((dim=30|id=677|"Link,l=5")', (dim=5|id=33|"5-link-6,upp"), (dim=5|id=730|"5-link-6"), (dim=30|id=677|"Link,l=5"))
+At step 5, inds(RR) = ((dim=30|id=432|"Link,l=4")', (dim=5|id=109|"4-link-5,upp"), (dim=5|id=679|"4-link-5"), (dim=30|id=432|"Link,l=4"))
+At step 4, inds(RR) = ((dim=30|id=405|"Link,l=3")', (dim=5|id=997|"3-link-4,upp"), (dim=5|id=262|"3-link-4"), (dim=30|id=405|"Link,l=3"))
+At step 3, inds(RR) = ((dim=30|id=581|"Link,l=2")', (dim=5|id=630|"2-link-3,upp"), (dim=5|id=184|"2-link-3"), (dim=30|id=581|"Link,l=2"))
+At step 2, inds(RR) = ((dim=30|id=543|"Link,l=1")', (dim=5|id=476|"1-link-2,upp"), (dim=5|id=313|"1-link-2"), (dim=30|id=543|"Link,l=1"))
+At step 1, inds(RR) = ()
+Sweep: 3 of 5, Energy: -0.000 -0.000im, Hdif: 0.000, Bonddim: 30, tol: 0.001
+Timestamp :: 0.018s :: In eigLR, bond dimensions: Index{Int64}[(dim=4|id=648|"Site1"), (dim=30|id=543|"Link,l=1")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -9.84513919537459e-6 - 5.909677834481484e-7im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -9.845139195374585e-6 - 5.909677834481535e-7im
+Timestamp :: 35.093s :: Done.
+In decomp_lrrho
+lrrho cost 0.002s
+Sweep: 4 of 5, Loc: 1, chi: 30, Energy: -0.000 -0.000im
+Timestamp :: 0.166s :: In eigLR, bond dimensions: Index{Int64}[(dim=4|id=751|"Link,l=1"), (dim=4|id=127|"Site2"), (dim=30|id=581|"Link,l=2")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -9.909973895165108e-6 - 6.245247190339648e-7im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -9.909973895165125e-6 - 6.245247190339594e-7im
+Timestamp :: 103.527s :: Done.
+In decomp_lrrho
+lrrho cost 0.002s
+Sweep: 4 of 5, Loc: 2, chi: 30, Energy: -0.000 -0.000im
+Timestamp :: 0.355s :: In eigLR, bond dimensions: Index{Int64}[(dim=16|id=59|"Link,l=2"), (dim=4|id=65|"Site3"), (dim=30|id=405|"Link,l=3")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -8.9426497792864e-6 - 1.3685865466572608e-7im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -8.94264977928639e-6 - 1.3685865466572235e-7im
+Timestamp :: 161.377s :: Done.
+In decomp_lrrho
+lrrho cost 0.085s
+Sweep: 4 of 5, Loc: 3, chi: 30, Energy: -0.000 -0.000im
+Timestamp :: 0.512s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=307|"Link,l=3"), (dim=4|id=109|"Site4"), (dim=30|id=432|"Link,l=4")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -5.111135416211644e-6 - 4.749677041364463e-7im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -5.111135416211649e-6 - 4.749677041364456e-7im
+Timestamp :: 201.098s :: Done.
+In decomp_lrrho
+lrrho cost 0.353s
+Sweep: 4 of 5, Loc: 4, chi: 30, Energy: -0.000 -0.000im
+Timestamp :: 0.51s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=815|"Link,l=4"), (dim=4|id=197|"Site5"), (dim=30|id=677|"Link,l=5")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -2.9119757911741425e-6 - 1.2702609788032833e-6im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -2.911975791174143e-6 - 1.2702609788032835e-6im
+Timestamp :: 201.29s :: Done.
+In decomp_lrrho
+lrrho cost 0.384s
+Sweep: 4 of 5, Loc: 5, chi: 30, Energy: -0.000 -0.000im
+Timestamp :: 0.827s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=363|"Link,l=5"), (dim=4|id=343|"Site6"), (dim=30|id=503|"Link,l=6")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -2.8759071297429773e-6 - 1.1599436956093141e-6im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -2.8759071297429777e-6 - 1.1599436956093173e-6im
+Timestamp :: 201.924s :: Done.
+In decomp_lrrho
+lrrho cost 0.398s
+Sweep: 4 of 5, Loc: 6, chi: 30, Energy: -0.000 -0.000im
+Timestamp :: 0.929s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=54|"Link,l=6"), (dim=4|id=709|"Site7"), (dim=30|id=492|"Link,l=7")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.5181166441334119e-6 + 9.765945937823483e-7im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.5181166441334114e-6 + 9.765945937823458e-7im
+Timestamp :: 201.698s :: Done.
+In decomp_lrrho
+lrrho cost 0.324s
+Sweep: 4 of 5, Loc: 7, chi: 30, Energy: -0.000 +0.000im
+Timestamp :: 0.499s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=974|"Link,l=7"), (dim=4|id=97|"Site8"), (dim=16|id=543|"Link,l=8")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -5.2567011825669245e-8 + 1.0050514588943731e-8im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -5.2567011825667934e-8 + 1.0050514588944194e-8im
+Timestamp :: 161.538s :: Done.
+In decomp_lrrho
+lrrho cost 0.411s
+Sweep: 4 of 5, Loc: 8, chi: 30, Energy: -0.000 +0.000im
+Timestamp :: 0.035s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=178|"Link,l=8"), (dim=4|id=90|"Site9"), (dim=4|id=775|"Link,l=9")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.306759202957371e-7 + 2.336286739822523e-8im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.3067592029573697e-7 + 2.336286739822524e-8im
+Timestamp :: 103.2s :: Done.
+In decomp_lrrho
+lrrho cost 0.587s
+Sweep: 4 of 5, Loc: 9, chi: 30, Energy: -0.000 +0.000im
+Timestamp :: 0.013s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=846|"Link,l=9"), (dim=4|id=698|"Site10")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.3546330698892896e-7 + 2.2551964900344117e-8im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.3546330698892873e-7 + 2.2551964900344196e-8im
+Timestamp :: 35.097s :: Done.
+In decomp_lrrho
+lrrho cost 0.001s
+Sweep: 4 of 5, Loc: 10, chi: 30, Energy: -0.000 +0.000im
+Timestamp :: 0.172s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=178|"Link,l=8"), (dim=4|id=90|"Site9"), (dim=4|id=573|"Link,l=9")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.3067592029573644e-7 + 2.336286739822525e-8im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.3067592029573655e-7 + 2.3362867398225254e-8im
+Timestamp :: 103.878s :: Done.
+In decomp_lrrho
+lrrho cost 0.094s
+Sweep: 4 of 5, Loc: 9, chi: 30, Energy: -0.000 +0.000im
+Timestamp :: 0.337s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=974|"Link,l=7"), (dim=4|id=97|"Site8"), (dim=16|id=7|"Link,l=8")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -5.2567011825698395e-8 + 1.0050514588943839e-8im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -5.2567011825698375e-8 + 1.0050514588943845e-8im
+Timestamp :: 162.054s :: Done.
+In decomp_lrrho
+lrrho cost 0.13s
+Sweep: 4 of 5, Loc: 8, chi: 30, Energy: -0.000 +0.000im
+Timestamp :: 0.522s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=54|"Link,l=6"), (dim=4|id=709|"Site7"), (dim=30|id=560|"Link,l=7")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -4.133876020020017e-8 - 5.5968895265642725e-9im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -4.133876020020018e-8 - 5.596889526564242e-9im
+Timestamp :: 202.054s :: Done.
+In decomp_lrrho
+lrrho cost 0.351s
+Sweep: 4 of 5, Loc: 7, chi: 30, Energy: -0.000 -0.000im
+Timestamp :: 0.675s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=363|"Link,l=5"), (dim=4|id=343|"Site6"), (dim=30|id=243|"Link,l=6")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -2.527984278563375e-8 - 6.255990388379543e-9im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -2.5279842785633717e-8 - 6.255990388379547e-9im
+Timestamp :: 202.567s :: Done.
+In decomp_lrrho
+lrrho cost 0.346s
+Sweep: 4 of 5, Loc: 6, chi: 30, Energy: -0.000 -0.000im
+Timestamp :: 0.522s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=815|"Link,l=4"), (dim=4|id=197|"Site5"), (dim=30|id=166|"Link,l=5")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.2559299672980076e-8 - 2.775295631533357e-9im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -1.2559299672980077e-8 - 2.7752956315333706e-9im
+Timestamp :: 201.403s :: Done.
+In decomp_lrrho
+lrrho cost 0.337s
+Sweep: 4 of 5, Loc: 5, chi: 30, Energy: -0.000 -0.000im
+Timestamp :: 0.68s :: In eigLR, bond dimensions: Index{Int64}[(dim=30|id=307|"Link,l=3"), (dim=4|id=109|"Site4"), (dim=30|id=839|"Link,l=4")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -3.3367778965198405e-9 - 6.865247626038886e-10im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -3.3367778965198397e-9 - 6.865247626038882e-10im
+Timestamp :: 201.491s :: Done.
+In decomp_lrrho
+lrrho cost 0.398s
+Sweep: 4 of 5, Loc: 4, chi: 30, Energy: -0.000 -0.000im
+Timestamp :: 0.345s :: In eigLR, bond dimensions: Index{Int64}[(dim=16|id=59|"Link,l=2"), (dim=4|id=65|"Site3"), (dim=30|id=856|"Link,l=3")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -7.982339255729027e-10 + 9.521665904441576e-11im
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -7.98233925572901e-10 + 9.521665904441622e-11im
+Timestamp :: 161.71s :: Done.
+In decomp_lrrho
+lrrho cost 0.436s
+Sweep: 4 of 5, Loc: 3, chi: 30, Energy: -0.000 +0.000im
+Timestamp :: 0.043s :: In eigLR, bond dimensions: Index{Int64}[(dim=4|id=751|"Link,l=1"), (dim=4|id=127|"Site2"), (dim=30|id=411|"Link,l=2")]
+Trying sprase diagonalization with ncv = 50
+Converged eigenvalue: -8.878283163681438e-10 + 1.5625503419394087e-10im
+Trying sprase diagonalization with ncv = 50
+slurmstepd: error: *** JOB 60315254 ON della-r2c4n16 CANCELLED AT 2024-11-11T18:42:08 DUE TO TIME LIMIT ***
